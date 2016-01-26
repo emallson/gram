@@ -1,0 +1,12 @@
+package = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+tarname = @PACKAGE_TARNAME@
+
+LIBS=@GUILE_LIBS@ @WLC_LIBS@
+CFLAGS=@GUILE_CFLAGS@ @WLC_CFLAGS@
+CC=@CC@
+
+all: gram
+
+gram: src/gram.c
+	$(CC) $(LIBS) $(CFLAGS) -o $@ $+

@@ -1,0 +1,18 @@
+AC_PREREQ([2.61])
+AC_INIT([gram], [0.1])
+
+AC_CONFIG_SRCDIR([src/gram.c])
+
+AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_HEADER_STDBOOL
+
+AC_PROG_CC
+
+PKG_CHECK_MODULES([GUILE], [guile-2.0])
+
+PKG_CHECK_MODULES([WLC], [wlc])
+
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT
