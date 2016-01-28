@@ -1,5 +1,6 @@
 AC_PREREQ([2.61])
 AC_INIT([gram], [0.1])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 
 AC_CONFIG_SRCDIR([src/gram.c])
 
@@ -8,6 +9,7 @@ AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADER_STDBOOL
 
 AC_PROG_CC
+AC_TYPE_UINT32_T
 
 PKG_CHECK_MODULES([GUILE], [guile-2.0])
 

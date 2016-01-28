@@ -4,72 +4,7 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
 
-struct gram_keysym
-{
-  const struct wlc_modifiers mods;
-  const uint32_t sym;
-  const uint32_t keycode;
-};
-
-static scm_t_bits gram_keysym_tag;
-
-static SCM
-gram_keysym_equalp (SCM a, SCM b)
-{
-  struct gram_keysym *k_a = (struct gram_keysym *) SCM_SMOB_DATA (a);
-  struct gram_keysym *k_b = (struct gram_keysym *) SCM_SMOB_DATA (b);
-
-  if (k_a->sym == k_b->sym && k_a->mods.mods == k_b->mods.mods)
-    {
-      return SCM_BOOL_T;
-    }
-  return SCM_BOOL_F;
-}
-
-static int
-gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
-{
-  struct gram_keysym *keysym =
-    (struct gram_keysym *) SCM_SMOB_DATA (keysym_smob);
-
-  scm_puts ("#<keysym ", port);
-  if (keysym->mods.mods & WLC_BIT_MOD_MOD2)
-    {
-      scm_puts ("S-", port);
-    }
-  if (keysym->mods.mods & WLC_BIT_MOD_CTRL)
-    {
-      scm_puts ("C-", port);
-    }
-  if (keysym->mods.mods & WLC_BIT_MOD_ALT)
-    {
-      scm_puts ("M-", port);
-    }
-  scm_putc (wlc_keyboard_get_utf32_for_key (keysym->keycode, NULL), port);
-  scm_puts (">", port);
-
-  return 1;
-}
-
-static SCM
-gram_keysym_scm (struct gram_keysym *_keysym)
-{
-  struct gram_keysym *keysym = (struct gram_keysym *)
-    scm_gc_malloc (sizeof (struct gram_keysym), "keysym");
-
-  memcpy (keysym, _keysym, sizeof (struct gram_keysym));
-
-  return scm_new_smob (gram_keysym_tag, (scm_t_bits) keysym);
-}
-
-static void
-init_gram_keysym (void)
-{
-  gram_keysym_tag =
-    scm_make_smob_type ("keysym", sizeof (struct gram_keysym));
-  scm_set_smob_print (gram_keysym_tag, gram_keysym_print);
-  scm_set_smob_equalp (gram_keysym_tag, gram_keysym_equalp);
-}
+#include "types/keysym.h"
 
 static void
 init_gram_types (void)
@@ -133,9 +68,7 @@ keyboard_key (wlc_handle view, uint32_t time,
     .mods = mods
   };
 
-  printf ("%x %x\n", XKB_KEY_Control_L, keysym.sym);
-
-  if (state == WLC_KEY_STATE_PRESSED && !keyboard_key_is_mod (keysym.sym))
+  if (state == WLC_KEY_STATE_PRESSED)
     {
       scm_with_guile (gram_keydown_hook_run, &keysym);
     }
@@ -169,7 +102,10 @@ init_guile (void *data)
   init_gram_types ();
   init_gram_hooks ();
 
-  load_init (data);
+  if(data != NULL)
+    {
+      load_init (data);
+    }
 }
 
 static char *
@@ -208,14 +144,11 @@ main (int argc, char **argv)
     return EXIT_FAILURE;
 
   char *init_file = get_init_file (argc, argv);
-  if (access (init_file, R_OK) != -1)
+  if (access (init_file, F_OK|R_OK) == -1)
     {
-      scm_with_guile (init_guile, init_file);
+      init_file = NULL;
     }
-  else
-    {
-      // continue, just skip reading...
-    }
+  scm_with_guile (init_guile, init_file);
 
   wlc_run ();
   return EXIT_SUCCESS;
