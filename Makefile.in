@@ -103,7 +103,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_gram_OBJECTS = src/gram-gram.$(OBJEXT) \
-	src/types/gram-keysym.$(OBJEXT)
+	src/types/gram-keysym.$(OBJEXT) src/types/gram-view.$(OBJEXT)
 gram_OBJECTS = $(am_gram_OBJECTS)
 gram_LDADD = $(LDADD)
 gram_LINK = $(CCLD) $(gram_CFLAGS) $(CFLAGS) $(gram_LDFLAGS) \
@@ -281,7 +281,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-gram_SOURCES = src/gram.c src/types/keysym.c
+gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c
 gram_CFLAGS = @GUILE_CFLAGS@ @WLC_CFLAGS@
 gram_LDFLAGS = @GUILE_LIBS@ @WLC_LIBS@
 all: all-am
@@ -379,6 +379,8 @@ src/types/$(DEPDIR)/$(am__dirstamp):
 	@: > src/types/$(DEPDIR)/$(am__dirstamp)
 src/types/gram-keysym.$(OBJEXT): src/types/$(am__dirstamp) \
 	src/types/$(DEPDIR)/$(am__dirstamp)
+src/types/gram-view.$(OBJEXT): src/types/$(am__dirstamp) \
+	src/types/$(DEPDIR)/$(am__dirstamp)
 
 gram$(EXEEXT): $(gram_OBJECTS) $(gram_DEPENDENCIES) $(EXTRA_gram_DEPENDENCIES) 
 	@rm -f gram$(EXEEXT)
@@ -394,6 +396,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/gram-gram.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/gram-keysym.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/gram-view.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -438,6 +441,20 @@ src/types/gram-keysym.obj: src/types/keysym.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/keysym.c' object='src/types/gram-keysym.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-keysym.obj `if test -f 'src/types/keysym.c'; then $(CYGPATH_W) 'src/types/keysym.c'; else $(CYGPATH_W) '$(srcdir)/src/types/keysym.c'; fi`
+
+src/types/gram-view.o: src/types/view.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -MT src/types/gram-view.o -MD -MP -MF src/types/$(DEPDIR)/gram-view.Tpo -c -o src/types/gram-view.o `test -f 'src/types/view.c' || echo '$(srcdir)/'`src/types/view.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/types/$(DEPDIR)/gram-view.Tpo src/types/$(DEPDIR)/gram-view.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/view.c' object='src/types/gram-view.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-view.o `test -f 'src/types/view.c' || echo '$(srcdir)/'`src/types/view.c
+
+src/types/gram-view.obj: src/types/view.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -MT src/types/gram-view.obj -MD -MP -MF src/types/$(DEPDIR)/gram-view.Tpo -c -o src/types/gram-view.obj `if test -f 'src/types/view.c'; then $(CYGPATH_W) 'src/types/view.c'; else $(CYGPATH_W) '$(srcdir)/src/types/view.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/types/$(DEPDIR)/gram-view.Tpo src/types/$(DEPDIR)/gram-view.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/view.c' object='src/types/gram-view.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-view.obj `if test -f 'src/types/view.c'; then $(CYGPATH_W) 'src/types/view.c'; else $(CYGPATH_W) '$(srcdir)/src/types/view.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

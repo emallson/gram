@@ -1,7 +1,10 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
+#include <xkbcommon/xkbcommon.h>
 
 #include "keysym.h"
+
+bool gram_swallow = false;
 
 static SCM
 gram_keysym_equalp (SCM a, SCM b)
@@ -23,7 +26,7 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
     (struct gram_keysym *) SCM_SMOB_DATA (keysym_smob);
 
   scm_puts ("#<keysym ", port);
-  if (keysym->mods.mods & WLC_BIT_MOD_MOD2)
+  if (keysym->mods.mods & WLC_BIT_MOD_LOGO)
     {
       scm_puts ("S-", port);
     }
@@ -35,7 +38,11 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
     {
       scm_puts ("M-", port);
     }
-  scm_putc (wlc_keyboard_get_utf32_for_key (keysym->keycode, NULL), port);
+
+  char buf[64];
+  xkb_keysym_get_name(keysym->sym, buf, 64);
+
+  scm_puts (buf, port);
   scm_puts (">", port);
 
   return 1;
@@ -52,6 +59,52 @@ gram_keysym_scm (struct gram_keysym *_keysym)
   return scm_new_smob (gram_keysym_tag, (scm_t_bits) keysym);
 }
 
+SCM
+gram_keysym_construct (SCM key_desc) {
+  char* desc = scm_to_locale_string(key_desc);
+  char* buf, *prev = NULL;
+
+  struct gram_keysym keysym;
+  keysym.mods.mods = 0;
+  keysym.mods.leds = 0;
+
+  buf = strtok(desc, "-");
+  while(buf != NULL) {
+    if(prev != NULL && strlen(prev) == 1) {
+      switch(prev[0]) {
+      case 'S':
+        keysym.mods.mods |= WLC_BIT_MOD_MOD2;
+        break;
+      case 'C':
+        keysym.mods.mods |= WLC_BIT_MOD_CTRL;
+        break;
+      case 'M':
+        keysym.mods.mods |= WLC_BIT_MOD_ALT;
+        break;
+      default:
+        /* invalid mod */
+        return SCM_BOOL_F;
+      }
+    }
+    keysym.sym = xkb_keysym_from_name(buf, XKB_KEYSYM_NO_FLAGS);
+    prev = buf;
+    buf = strtok(NULL, "-");
+  }
+
+  if (keysym.sym == XKB_KEY_NoSymbol) {
+    return SCM_BOOL_F;
+  }
+
+  return gram_keysym_scm(&keysym);
+}
+
+SCM
+gram_key_swallow_next(void)
+{
+  gram_swallow = true;
+  return SCM_BOOL_T;
+}
+
 void
 init_gram_keysym (void)
 {
@@ -59,4 +112,6 @@ init_gram_keysym (void)
     scm_make_smob_type ("keysym", sizeof (struct gram_keysym));
   scm_set_smob_print (gram_keysym_tag, gram_keysym_print);
   scm_set_smob_equalp (gram_keysym_tag, gram_keysym_equalp);
+  scm_c_define_gsubr("swallow-next-key", 0, 0, 0, gram_key_swallow_next);
+  scm_c_define_gsubr("kbd", 1, 0, 0, gram_keysym_construct);
 }

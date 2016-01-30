@@ -5,3 +5,6 @@
 /config.status
 /configure.scan
 /gram
+.deps
+.dirstamp
+*.o

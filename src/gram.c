@@ -1,27 +1,52 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/wait.h>
+
 #include <libguile.h>
 #include <wlc/wlc.h>
 
 #include "types/keysym.h"
+#include "types/view.h"
+
+static SCM
+gram_exec (SCM cmd) {
+  char* s = scm_to_locale_string(cmd);
+  wlc_exec(s, (char *const[]){ s, NULL });
+  return SCM_BOOL_F;
+}
 
 static void
 init_gram_types (void)
 {
   init_gram_keysym ();
+  init_gram_view ();
+
+  /* misc placed here momentarily while testing */
+  scm_c_define_gsubr("gram-exit", 0, 0, 0, wlc_terminate);
+  scm_c_define_gsubr("gram-exec", 1, 0, 0, gram_exec);
 }
 
 static SCM gram_keydown_hook;
 static SCM gram_keydown_hook_object;
+
+static SCM gram_view_created_hook;
+static SCM gram_view_created_hook_object;
+
 static void
 init_gram_hooks (void)
 {
   gram_keydown_hook =
     scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (1)));
   gram_keydown_hook_object =
-    scm_permanent_object (scm_c_define ("*keydown-hook*", gram_keydown_hook));
+    scm_permanent_object (scm_c_define ("keydown-hook", gram_keydown_hook));
+
+  gram_view_created_hook =
+    scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (1)));
+  gram_view_created_hook_object =
+    scm_permanent_object (scm_c_define ("view-created-hook", gram_view_created_hook));
 }
+
 
 static void *
 gram_keydown_hook_run (void *data)
@@ -30,6 +55,15 @@ gram_keydown_hook_run (void *data)
 		  scm_make_list (scm_from_unsigned_integer (1),
 				 gram_keysym_scm ((struct gram_keysym *)
 						  data)));
+  return (void*)&gram_swallow;
+}
+
+static void *
+gram_view_created_hook_run (void *data)
+{
+  scm_c_run_hook (gram_view_created_hook,
+                  scm_make_list (scm_from_unsigned_integer (1),
+                                 gram_view_scm((struct gram_view *) data)));
 }
 
 static bool
@@ -70,17 +104,37 @@ keyboard_key (wlc_handle view, uint32_t time,
 
   if (state == WLC_KEY_STATE_PRESSED)
     {
-      scm_with_guile (gram_keydown_hook_run, &keysym);
+      bool t = *(bool*)scm_with_guile (gram_keydown_hook_run, &keysym);
+      gram_swallow = false;
+      return t;
     }
 
-  return true;
+  return false;
 }
 
 static bool
 view_created (wlc_handle view)
 {
+  wlc_view_set_mask(view, wlc_output_get_mask(wlc_view_get_output(view)));
   wlc_view_bring_to_front (view);
   wlc_view_focus (view);
+
+  const struct wlc_size *r;
+  /* todo: error checking */
+  r = wlc_output_get_resolution(wlc_view_get_output(view));
+  struct wlc_geometry g = {
+    { 0, 0 },
+    { r->w, r->h }
+  };
+
+  wlc_view_set_geometry(view, 0, &g);
+
+  struct gram_view v = {
+    .view = view
+  };
+
+  scm_with_guile (gram_view_created_hook_run, &v);
+
   return true;
 }
 
@@ -90,7 +144,7 @@ view_focus (wlc_handle view, bool focus)
   wlc_view_set_state (view, WLC_BIT_ACTIVATED, focus);
 }
 
-static void
+static void*
 load_init (void *data)
 {
   scm_c_primitive_load ((char *) data);
@@ -102,10 +156,6 @@ init_guile (void *data)
   init_gram_types ();
   init_gram_hooks ();
 
-  if(data != NULL)
-    {
-      load_init (data);
-    }
 }
 
 static char *
@@ -117,12 +167,12 @@ get_init_file (int argc, char **argv)
     {
       switch (opt)
     {
-	case 'i':
-	  len = strlen (optarg);
-	  init_file = calloc (len, sizeof (char));
-	  strncpy (init_file, optarg, len);
-	  break;
-	}
+    case 'i':
+      len = strlen (optarg);
+      init_file = calloc (len, sizeof (char));
+      strncpy (init_file, optarg, len);
+      break;
+    }
     }
   return init_file;
 }
@@ -148,8 +198,15 @@ main (int argc, char **argv)
     {
       init_file = NULL;
     }
-  scm_with_guile (init_guile, init_file);
+
+  scm_with_guile (init_guile, (void*)NULL);
+
+  if(init_file != NULL) {
+    scm_with_guile(load_init, init_file);
+  }
 
   wlc_run ();
+
+
   return EXIT_SUCCESS;
 }
