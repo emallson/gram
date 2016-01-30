@@ -1,4 +1,5 @@
-(use-modules (ice-9 popen))
+(use-modules (ice-9 popen)
+             (srfi srfi-26))
 
 (display "Test from guile!\n")
 
@@ -8,10 +9,20 @@
   "Alias for `open-input-output-pipe'."
   (open-input-output-pipe cmd))
 
-(define (m-x-menu keysym)
-  (when (equal? keysym (kbd "M-x"))
-    (swallow-next-key)
-    (run "bemenu-run")))
+(define default-keymap '())
 
-(add-hook! keydown-hook display)
-(add-hook! keydown-hook m-x-menu)
+(define-macro (define-key! km key fn)
+  "Adds `KEY' as a binding for `FN' to keymap `KM'."
+  `(set! ,km (assoc-set! ,km ,key ,fn)))
+
+(define (keymap-hook km)
+  (lambda (key)
+    (let ((fn (assoc-ref (primitive-eval km) key)))
+      (when fn
+        (fn)
+        (swallow-next-key)))))
+
+(add-hook! keydown-hook (keymap-hook 'default-keymap))
+
+(define-key! default-keymap (kbd "M-x") (cute run "bemenu-run"))
+(define-key! default-keymap (kbd "M-<Space>") (cute run "st"))

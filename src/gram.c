@@ -104,9 +104,9 @@ keyboard_key (wlc_handle view, uint32_t time,
 
   if (state == WLC_KEY_STATE_PRESSED)
     {
-      bool t = *(bool*)scm_with_guile (gram_keydown_hook_run, &keysym);
+      bool* t = (bool*)scm_with_guile (gram_keydown_hook_run, &keysym);
       gram_swallow = false;
-      return t;
+      return t == NULL || *t;
     }
 
   return false;

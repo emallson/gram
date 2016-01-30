@@ -68,7 +68,7 @@ gram_keysym_construct (SCM key_desc) {
   keysym.mods.mods = 0;
   keysym.mods.leds = 0;
 
-  buf = strtok(desc, "-");
+  buf = strtok(desc, "-<>");
   while(buf != NULL) {
     if(prev != NULL && strlen(prev) == 1) {
       switch(prev[0]) {
@@ -83,15 +83,20 @@ gram_keysym_construct (SCM key_desc) {
         break;
       default:
         /* invalid mod */
+        scm_misc_error("kbd", "~A is not a valid modifier", scm_list_1(scm_from_locale_string (prev)));
         return SCM_BOOL_F;
       }
+    } else if(prev != NULL && strlen(prev) == 1) {
+      scm_misc_error("kbd", "~A is not a valid keysym", scm_list_1(key_desc));
+      return SCM_BOOL_F;
     }
-    keysym.sym = xkb_keysym_from_name(buf, XKB_KEYSYM_NO_FLAGS);
+    keysym.sym = xkb_keysym_from_name(buf, XKB_KEYSYM_CASE_INSENSITIVE);
     prev = buf;
-    buf = strtok(NULL, "-");
+    buf = strtok(NULL, "<->");
   }
 
   if (keysym.sym == XKB_KEY_NoSymbol) {
+    scm_misc_error("kbd", "~A is not a valid keysym", scm_list_1(scm_from_locale_string(prev)));
     return SCM_BOOL_F;
   }
 
