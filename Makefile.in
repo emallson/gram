@@ -103,7 +103,8 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_gram_OBJECTS = src/gram-gram.$(OBJEXT) \
-	src/types/gram-keysym.$(OBJEXT) src/types/gram-view.$(OBJEXT)
+	src/types/gram-keysym.$(OBJEXT) src/types/gram-view.$(OBJEXT) \
+	src/types/gram-output.$(OBJEXT)
 gram_OBJECTS = $(am_gram_OBJECTS)
 gram_LDADD = $(LDADD)
 gram_LINK = $(CCLD) $(gram_CFLAGS) $(CFLAGS) $(gram_LDFLAGS) \
@@ -281,7 +282,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c
+gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c src/types/output.c
+gram_SOURCES_H = src/types/keysym.h src/types/view.h src/types/output.h
 gram_CFLAGS = @GUILE_CFLAGS@ @WLC_CFLAGS@
 gram_LDFLAGS = @GUILE_LIBS@ @WLC_LIBS@
 all: all-am
@@ -381,6 +383,8 @@ src/types/gram-keysym.$(OBJEXT): src/types/$(am__dirstamp) \
 	src/types/$(DEPDIR)/$(am__dirstamp)
 src/types/gram-view.$(OBJEXT): src/types/$(am__dirstamp) \
 	src/types/$(DEPDIR)/$(am__dirstamp)
+src/types/gram-output.$(OBJEXT): src/types/$(am__dirstamp) \
+	src/types/$(DEPDIR)/$(am__dirstamp)
 
 gram$(EXEEXT): $(gram_OBJECTS) $(gram_DEPENDENCIES) $(EXTRA_gram_DEPENDENCIES) 
 	@rm -f gram$(EXEEXT)
@@ -396,6 +400,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/gram-gram.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/gram-keysym.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/gram-output.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/gram-view.Po@am__quote@
 
 .c.o:
@@ -455,6 +460,20 @@ src/types/gram-view.obj: src/types/view.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/view.c' object='src/types/gram-view.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-view.obj `if test -f 'src/types/view.c'; then $(CYGPATH_W) 'src/types/view.c'; else $(CYGPATH_W) '$(srcdir)/src/types/view.c'; fi`
+
+src/types/gram-output.o: src/types/output.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -MT src/types/gram-output.o -MD -MP -MF src/types/$(DEPDIR)/gram-output.Tpo -c -o src/types/gram-output.o `test -f 'src/types/output.c' || echo '$(srcdir)/'`src/types/output.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/types/$(DEPDIR)/gram-output.Tpo src/types/$(DEPDIR)/gram-output.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/output.c' object='src/types/gram-output.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-output.o `test -f 'src/types/output.c' || echo '$(srcdir)/'`src/types/output.c
+
+src/types/gram-output.obj: src/types/output.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -MT src/types/gram-output.obj -MD -MP -MF src/types/$(DEPDIR)/gram-output.Tpo -c -o src/types/gram-output.obj `if test -f 'src/types/output.c'; then $(CYGPATH_W) 'src/types/output.c'; else $(CYGPATH_W) '$(srcdir)/src/types/output.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/types/$(DEPDIR)/gram-output.Tpo src/types/$(DEPDIR)/gram-output.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/types/output.c' object='src/types/gram-output.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(gram_CFLAGS) $(CFLAGS) -c -o src/types/gram-output.obj `if test -f 'src/types/output.c'; then $(CYGPATH_W) 'src/types/output.c'; else $(CYGPATH_W) '$(srcdir)/src/types/output.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -811,6 +830,9 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 
+
+indent: $(gram_SOURCES) $(gram_SOURCES_H)
+	indent -bli0 --no-tabs $^
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

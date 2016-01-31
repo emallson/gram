@@ -3,7 +3,8 @@
 
 (display "Test from guile!\n")
 
-(add-hook! view-created-hook display)
+(add-hook! view-created-hook (lambda (v) (display (view-get-output v))))
+(add-hook! view-created-hook (lambda (v) (display v)))
 
 (define (run cmd)
   "Alias for `open-input-output-pipe'."
