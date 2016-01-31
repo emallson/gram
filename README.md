@@ -19,7 +19,6 @@ as it is an optional dependency of many GNU programs including `gdb`.
 Compiling
 =========
 
-    automake --add-missing
-    autoreconf
+    autoreconf --install
     ./configure
     make
