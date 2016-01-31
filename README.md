@@ -10,6 +10,7 @@ Dependencies
 ============
 
 [Cloudef/wlc](https://github.com/Cloudef/wlc)
+
 [libguile](http://www.gnu.org/software/guile/)
 
 If you're on linux, you almost certainly already have guile installed
