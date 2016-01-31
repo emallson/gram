@@ -12,9 +12,9 @@
 
 (define default-keymap '())
 
-(define-macro (define-key! km key fn)
+(define-syntax-rule (define-key! km key fn)
   "Adds `KEY' as a binding for `FN' to keymap `KM'."
-  `(set! ,km (assoc-set! ,km ,key ,fn)))
+  (set! km (assoc-set! km key fn)))
 
 (define (keymap-hook km)
   (lambda (key)
