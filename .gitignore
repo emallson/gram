@@ -10,3 +10,8 @@
 *.o
 /Makefile
 *~
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
