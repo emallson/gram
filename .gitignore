@@ -18,3 +18,6 @@
 /tap-driver.sh
 /test-driver
 /Makefile.in
+/keysym_check
+*.trs
+/view_check

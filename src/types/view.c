@@ -5,7 +5,7 @@
 #include "output.h"
 
 static struct gram_view *view_table[GRAM_MAX_VIEWS];
-static scm_t_bits gram_view_tag;
+static SCM smob_table[GRAM_MAX_VIEWS];
 
 static int
 gram_view_print (SCM view_smob, SCM port, scm_print_state * pstate)
@@ -41,6 +41,8 @@ gram_view_scm (const wlc_handle view)
         view_table[i] = (struct gram_view *)
           scm_gc_malloc (sizeof (struct gram_view), "view");
         *(wlc_handle *) & view_table[i]->view = view;
+        smob_table[i] = scm_new_smob (gram_view_tag,
+                                      (scm_t_bits) view_table[i]);
         break;
       }
     }
@@ -52,7 +54,7 @@ gram_view_scm (const wlc_handle view)
     return SCM_BOOL_F;
   }
   view_table[i]->active = true;
-  return scm_new_smob (gram_view_tag, (scm_t_bits) view_table[i]);
+  return smob_table[i];
 }
 
 void
@@ -78,6 +80,7 @@ gram_view_free (SCM _view)
     if (view_table[i] == view)
     {
       view_table[i] = NULL;
+      smob_table[i] = NULL;
     }
   }
 

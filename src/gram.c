@@ -80,8 +80,8 @@ load_init (void *data)
 static void *
 init_guile (void *data)
 {
-  scm_setlocale(scm_variable_ref(scm_c_lookup("LC_ALL")),
-                scm_from_locale_string(""));
+  scm_setlocale (scm_variable_ref (scm_c_lookup ("LC_ALL")),
+                 scm_from_locale_string (""));
   init_gram_types ();
   init_gram_hooks ();
   return SCM_UNSPECIFIED;

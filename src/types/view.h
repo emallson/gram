@@ -11,6 +11,8 @@ struct gram_view
 /* I look forward to the day that someone yells at me for this */
 #define GRAM_MAX_VIEWS 4096
 
+scm_t_bits gram_view_tag;
+
 void gram_view_deactivate (const wlc_handle view);
 SCM gram_view_scm (const wlc_handle view);
 
