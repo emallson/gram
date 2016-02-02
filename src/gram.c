@@ -6,71 +6,8 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
 
-#include "types/keysym.h"
-#include "types/view.h"
-#include "types/output.h"
-
-static SCM
-gram_exec (SCM cmd)
-{
-  char *s = scm_to_locale_string (cmd);
-  wlc_exec (s, (char *const[])
-            {
-            s, NULL});
-  return SCM_BOOL_F;
-}
-
-static void
-init_gram_types (void)
-{
-  init_gram_keysym ();
-  init_gram_view ();
-  init_gram_output ();
-
-  /* misc placed here momentarily while testing */
-  scm_c_define_gsubr ("gram-exit", 0, 0, 0, wlc_terminate);
-  scm_c_define_gsubr ("gram-exec", 1, 0, 0, gram_exec);
-}
-
-static SCM gram_keydown_hook;
-static SCM gram_keydown_hook_object;
-
-static SCM gram_view_created_hook;
-static SCM gram_view_created_hook_object;
-
-static void
-init_gram_hooks (void)
-{
-  gram_keydown_hook =
-    scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (1)));
-  gram_keydown_hook_object =
-    scm_permanent_object (scm_c_define ("keydown-hook", gram_keydown_hook));
-
-  gram_view_created_hook =
-    scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (1)));
-  gram_view_created_hook_object =
-    scm_permanent_object (scm_c_define
-                          ("view-created-hook", gram_view_created_hook));
-}
-
-
-static void *
-gram_keydown_hook_run (void *data)
-{
-  scm_c_run_hook (gram_keydown_hook,
-                  scm_make_list (scm_from_unsigned_integer (1),
-                                 gram_keysym_scm ((struct gram_keysym *)
-                                                  data)));
-  return (void *) &gram_swallow;
-}
-
-static void *
-gram_view_created_hook_run (void *data)
-{
-  scm_c_run_hook (gram_view_created_hook,
-                  scm_make_list (scm_from_unsigned_integer (1),
-                                 gram_view_scm (*(const wlc_handle *) data)));
-}
+#include "types/types.h"
+#include "hooks/hooks.h"
 
 static bool
 keyboard_key (wlc_handle view, uint32_t time,
@@ -137,14 +74,17 @@ static void *
 load_init (void *data)
 {
   scm_c_primitive_load ((char *) data);
+  return SCM_UNSPECIFIED;
 }
 
 static void *
 init_guile (void *data)
 {
+  scm_setlocale(scm_variable_ref(scm_c_lookup("LC_ALL")),
+                scm_from_locale_string(""));
   init_gram_types ();
   init_gram_hooks ();
-
+  return SCM_UNSPECIFIED;
 }
 
 static char *

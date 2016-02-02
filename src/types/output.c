@@ -3,6 +3,9 @@
 
 #include "output.h"
 
+static struct gram_output *output_table[GRAM_MAX_OUTPUTS];
+static scm_t_bits gram_output_tag;
+
 static int
 gram_output_print (SCM output_smob, SCM port, scm_print_state * pstate)
 {

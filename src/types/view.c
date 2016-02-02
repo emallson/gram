@@ -4,6 +4,9 @@
 #include "view.h"
 #include "output.h"
 
+static struct gram_view *view_table[GRAM_MAX_VIEWS];
+static scm_t_bits gram_view_tag;
+
 static int
 gram_view_print (SCM view_smob, SCM port, scm_print_state * pstate)
 {
@@ -202,7 +205,7 @@ gram_view_get_output (SCM _view)
     SCM out_smob = gram_output_scm (out);
     return out_smob;
   }
-  printf ("Inactive view accessed: %d\n", view->view);
+  printf ("Inactive view accessed: %lu\n", view->view);
   return SCM_BOOL_F;
 }
 

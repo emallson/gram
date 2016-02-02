@@ -40,9 +40,14 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
   }
 
   char buf[64];
-  xkb_keysym_get_name (keysym->sym, buf, 64);
+  xkb_keysym_to_utf8 (keysym->sym, buf, 64);
 
-  scm_puts (buf, port);
+  if(buf[0] > 0 && buf[0] <= 0x7F) {
+    xkb_keysym_get_name (keysym->sym, buf, 64);
+  }
+
+  SCM name = scm_from_utf8_string(buf);
+  scm_display (name, port);
   scm_puts (">", port);
 
   return 1;

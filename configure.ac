@@ -1,6 +1,8 @@
 AC_PREREQ([2.61])
 AC_INIT([gram], [0.1])
+AC_PROG_CC([clang gcc])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
+AM_SILENT_RULES([yes])
 
 AC_CONFIG_SRCDIR([src/gram.c])
 
