@@ -127,12 +127,21 @@ gram_key_swallow_next (void)
 }
 
 void
+init_gram_keysym_fns (void* data)
+{
+  scm_c_define_gsubr ("swallow-next-key", 0, 0, 0, gram_key_swallow_next);
+  scm_c_define_gsubr ("kbd", 1, 0, 0, gram_keysym_construct);
+
+  scm_c_export("swallow-next-key", "kbd");
+}
+
+void
 init_gram_keysym (void)
 {
   gram_keysym_tag =
     scm_make_smob_type ("keysym", sizeof (struct gram_keysym));
   scm_set_smob_print (gram_keysym_tag, gram_keysym_print);
   scm_set_smob_equalp (gram_keysym_tag, gram_keysym_equalp);
-  scm_c_define_gsubr ("swallow-next-key", 0, 0, 0, gram_key_swallow_next);
-  scm_c_define_gsubr ("kbd", 1, 0, 0, gram_keysym_construct);
+
+  scm_c_define_module("gram keysym", init_gram_keysym_fns, NULL);
 }

@@ -90,35 +90,36 @@ START_TEST (test_view_deactivate_fns)
 
   gram_view_deactivate (a);
 
+  scm_c_use_module ("gram view");
   /* mutations should return the view itself */
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-close")), sa), sa);
+                    (scm_variable_ref (scm_c_lookup ("close")), sa), sa);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-focus")), sa), sa);
+                    (scm_variable_ref (scm_c_lookup ("focus")), sa), sa);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-bring-to-front")),
+                    (scm_variable_ref (scm_c_lookup ("bring-to-front")),
                      sa), sa);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-send-to-back")),
+                    (scm_variable_ref (scm_c_lookup ("send-to-back")),
                      sa), sa);
   /* getters should return #f */
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-geometry")),
+                    (scm_variable_ref (scm_c_lookup ("get-geometry")),
                      sa), SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-state")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-state")), sa),
                     SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-output")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-output")), sa),
                     SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-app-id")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-app-id")), sa),
                     SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-class")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-class")), sa),
                     SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("view-get-type")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-type")), sa),
                     SCM_BOOL_F);
 }
 
@@ -165,7 +166,8 @@ START_TEST (test_view_equalp_nontrivial)
   ck_assert_ptr_eq (scm_equal_p (sa, sb), SCM_BOOL_F);
 }
 
-END_TEST Suite * view_suite (void)
+END_TEST Suite *
+view_suite (void)
 {
   Suite *s;
   TCase *tc_init, *tc_convert, *tc_deactivate, *tc_equalp;

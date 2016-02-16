@@ -64,6 +64,26 @@ START_TEST (test_keysym_from_scm)
 }
 
 END_TEST
+
+START_TEST (test_keysym_kbd)
+{
+  scm_init_guile();
+  init_gram_keysym();
+
+  scm_c_use_module("gram keysym");
+
+  SCM res = scm_call_1(scm_variable_ref(scm_c_lookup("kbd")), scm_from_locale_string("M-x"));
+
+  scm_assert_smob_type(gram_keysym_tag, res);
+  struct gram_keysym ks = *(struct gram_keysym *) SCM_SMOB_DATA (res);
+
+  ck_assert_uint_eq(ks.keycode, 0);
+  ck_assert_uint_eq(ks.sym, XKB_KEY_x);
+  ck_assert_uint_eq(ks.mods.mods, WLC_BIT_MOD_ALT);
+  ck_assert_uint_eq(ks.mods.leds, 0);
+}
+END_TEST
+
 START_TEST (test_keysym_equalp_reflexive)
 {
   scm_init_guile ();
@@ -261,10 +281,29 @@ START_TEST (test_keysym_display_unicode)
                                            XKB_KEYSYM_CASE_INSENSITIVE));
 }
 
-END_TEST Suite * keysym_suite (void)
+END_TEST
+
+START_TEST(test_keysym_swallow)
+{
+  scm_init_guile ();
+  init_gram_keysym();
+
+  ck_assert(!gram_swallow);
+
+  scm_c_use_module("gram keysym");
+
+  SCM res = scm_call_0(scm_variable_ref (scm_c_lookup ("swallow-next-key")));
+
+  ck_assert(gram_swallow);
+  ck_assert_ptr_eq(res, SCM_BOOL_T);
+}
+END_TEST
+
+Suite *
+keysym_suite (void)
 {
   Suite *s;
-  TCase *tc_core, *tc_convert, *tc_equalp, *tc_display;
+  TCase *tc_core, *tc_convert, *tc_equalp, *tc_display, *tc_swallow;
 
   s = suite_create ("types/keysym");
 
@@ -275,6 +314,7 @@ END_TEST Suite * keysym_suite (void)
   tc_convert = tcase_create ("Convert");
   tcase_add_test (tc_convert, test_keysym_to_scm);
   tcase_add_test (tc_convert, test_keysym_from_scm);
+  tcase_add_test (tc_convert, test_keysym_kbd);
   suite_add_tcase (s, tc_convert);
 
   /* testing permutations of these is left as an exercise for the
@@ -292,6 +332,9 @@ END_TEST Suite * keysym_suite (void)
   tcase_add_test (tc_display, test_keysym_display_unicode);
   suite_add_tcase (s, tc_display);
 
+  tc_swallow = tcase_create("swallow");
+  tcase_add_test (tc_swallow, test_keysym_swallow);
+  suite_add_tcase(s, tc_swallow);
 
   return s;
 }

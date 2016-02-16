@@ -145,6 +145,20 @@ gram_geometry_scm (const struct wlc_geometry *geo)
                              scm_from_uint32 (geo->size.h)));
 }
 
+/* converts an SCM to a wlc_geometry. Assumes input is valid. */
+static const struct wlc_geometry
+gram_geometry_from_scm (SCM _geo)
+{
+  struct wlc_geometry geo = {
+    {scm_to_uint32 (scm_caar (_geo)),
+     scm_to_uint32 (scm_cdar (_geo))},
+    {scm_to_uint32 (scm_cadr (_geo)),
+     scm_to_uint32 (scm_cddr (_geo))}
+  };
+
+  return geo;
+}
+
 static SCM
 gram_view_get_geometry (SCM _view)
 {
@@ -156,6 +170,24 @@ gram_view_get_geometry (SCM _view)
   return SCM_BOOL_F;
 }
 
+static SCM
+gram_view_set_geometry (SCM _view, SCM _geo)
+{
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  if (view->active)
+  {
+    if (scm_pair_p (_geo) && scm_pair_p (scm_car (_geo))
+        && scm_pair_p (scm_cdr (_geo)))
+    {
+      const struct wlc_geometry geo = gram_geometry_from_scm (_geo);
+      wlc_view_set_geometry (view->view, 0, &geo);
+      return SCM_ELISP_NIL;
+    }
+  }
+  return SCM_BOOL_F;
+}
+
+/* not sure this is right. seems like a bitmask? */
 static SCM
 gram_view_state_scm (uint32_t state)
 {
@@ -175,6 +207,33 @@ gram_view_state_scm (uint32_t state)
   return SCM_BOOL_F;
 }
 
+/* see above comment */
+static uint32_t
+gram_view_state_from_scm (SCM _state)
+{
+  if (scm_eq_p (scm_from_locale_symbol ("activated"), _state))
+  {
+    return WLC_BIT_ACTIVATED;
+  }
+  if (scm_eq_p (scm_from_locale_symbol ("fullscreen"), _state))
+  {
+    return WLC_BIT_FULLSCREEN;
+  }
+  if (scm_eq_p (scm_from_locale_symbol ("maximized"), _state))
+  {
+    return WLC_BIT_MAXIMIZED;
+  }
+  if (scm_eq_p (scm_from_locale_symbol ("moving"), _state))
+  {
+    return WLC_BIT_MOVING;
+  }
+  if (scm_eq_p (scm_from_locale_symbol ("resizing"), _state))
+  {
+    return WLC_BIT_RESIZING;
+  }
+  return -1;
+}
+
 static SCM
 gram_view_get_state (SCM _view)
 {
@@ -182,6 +241,24 @@ gram_view_get_state (SCM _view)
   if (view->active)
   {
     return gram_view_state_scm (wlc_view_get_state (view->view));
+  }
+  return SCM_BOOL_F;
+}
+
+
+static SCM
+gram_view_set_state (SCM _view, SCM _state, SCM _toggle)
+{
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  if (view->active)
+  {
+    uint32_t state = gram_view_state_from_scm (_state);
+    if (state != -1)
+    {
+      wlc_view_set_state (view->view, state, scm_is_false_or_nil (_toggle));
+      return SCM_ELISP_NIL;
+    }
+    return SCM_BOOL_F;
   }
   return SCM_BOOL_F;
 }
@@ -199,6 +276,34 @@ gram_view_get_state (SCM _view)
 /* } */
 
 static SCM
+gram_view_get_parent (SCM _view)
+{
+  scm_assert_smob_type (gram_view_tag, _view);
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  if (view->active)
+  {
+    return gram_view_scm (wlc_view_get_parent (view->view));
+  }
+  return SCM_BOOL_F;
+}
+
+static SCM
+gram_view_set_parent (SCM _view, SCM _parent)
+{
+  scm_assert_smob_type (gram_view_tag, _view);
+  scm_assert_smob_type (gram_view_tag, _parent);
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  struct gram_view *parent = (struct gram_view *) SCM_SMOB_DATA (_parent);
+
+  if (view->active && parent->active)
+  {
+    wlc_view_set_parent (view->view, parent->view);
+    return SCM_ELISP_NIL;
+  }
+  return SCM_BOOL_F;
+}
+
+static SCM
 gram_view_get_output (SCM _view)
 {
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
@@ -209,6 +314,20 @@ gram_view_get_output (SCM _view)
     return out_smob;
   }
   printf ("Inactive view accessed: %lu\n", view->view);
+  return SCM_BOOL_F;
+}
+
+static SCM
+gram_view_set_output (SCM _view, SCM _output)
+{
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
+
+  if (view->active && output->active)
+  {
+    wlc_view_set_output (view->view, output->output);
+    return SCM_ELISP_NIL;
+  }
   return SCM_BOOL_F;
 }
 
@@ -274,20 +393,31 @@ gram_view_get_type (SCM _view)
 }
 
 static void
-init_gram_view_methods (void)
+init_gram_view_methods (void *data)
 {
-  scm_c_define_gsubr ("view-close", 1, 0, 0, gram_view_close);
-  scm_c_define_gsubr ("view-bring-to-front", 1, 0, 0,
-                      gram_view_bring_to_front);
-  scm_c_define_gsubr ("view-send-to-back", 1, 0, 0, gram_view_send_to_back);
-  scm_c_define_gsubr ("view-focus", 1, 0, 0, gram_view_focus);
-  scm_c_define_gsubr ("view-get-geometry", 1, 0, 0, gram_view_get_geometry);
-  scm_c_define_gsubr ("view-get-state", 1, 0, 0, gram_view_get_state);
-  /* scm_c_define_gsubr ("view-get-mask", 1, 0, 0, gram_view_get_mask); */
-  scm_c_define_gsubr ("view-get-output", 1, 0, 0, gram_view_get_output);
-  scm_c_define_gsubr ("view-get-app-id", 1, 0, 0, gram_view_get_app_id);
-  scm_c_define_gsubr ("view-get-class", 1, 0, 0, gram_view_get_class);
-  scm_c_define_gsubr ("view-get-type", 1, 0, 0, gram_view_get_type);
+  scm_c_define_gsubr ("close", 1, 0, 0, gram_view_close);
+  scm_c_define_gsubr ("bring-to-front", 1, 0, 0, gram_view_bring_to_front);
+  scm_c_define_gsubr ("send-to-back", 1, 0, 0, gram_view_send_to_back);
+  scm_c_define_gsubr ("focus", 1, 0, 0, gram_view_focus);
+  scm_c_define_gsubr ("get-geometry", 1, 0, 0, gram_view_get_geometry);
+  scm_c_define_gsubr ("set-geometry", 2, 0, 0, gram_view_set_geometry);
+  scm_c_define_gsubr ("get-state", 1, 0, 0, gram_view_get_state);
+  scm_c_define_gsubr ("set-state", 3, 0, 0, gram_view_set_state);
+  /* scm_c_define_gsubr ("get-mask", 1, 0, 0, gram_view_get_mask); */
+  scm_c_define_gsubr ("get-parent", 1, 0, 0, gram_view_get_parent);
+  scm_c_define_gsubr ("set-parent", 2, 0, 0, gram_view_set_parent);
+  scm_c_define_gsubr ("get-output", 1, 0, 0, gram_view_get_output);
+  scm_c_define_gsubr ("set-output", 2, 0, 0, gram_view_set_output);
+  scm_c_define_gsubr ("get-app-id", 1, 0, 0, gram_view_get_app_id);
+  scm_c_define_gsubr ("get-class", 1, 0, 0, gram_view_get_class);
+  scm_c_define_gsubr ("get-type", 1, 0, 0, gram_view_get_type);
+
+  scm_c_export ("close", "bring-to-front", "send-to-back", "focus",
+                "get-geometry", "set-geometry",
+                "get-state", "set-state",
+                "get-parent", "set-parent",
+                "get-output", "set-output",
+                "get-app-id", "get-class", "get-type", NULL);
 }
 
 void
@@ -297,5 +427,5 @@ init_gram_view (void)
   scm_set_smob_print (gram_view_tag, gram_view_print);
   scm_set_smob_free (gram_view_tag, gram_view_free);
 
-  init_gram_view_methods ();
+  scm_c_define_module ("gram view", init_gram_view_methods, NULL);
 }

@@ -1,5 +1,8 @@
 (use-modules (ice-9 popen)
-             (srfi srfi-26))
+             (srfi srfi-26)
+             ((gram view)
+              #:renamer (symbol-prefix-proc 'view-))
+             (gram keysym))
 
 (display "Test from guile!\n")
 
