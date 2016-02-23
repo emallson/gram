@@ -423,7 +423,8 @@ init_gram_view_methods (void *data)
 void
 init_gram_view (void)
 {
-  for(uint32_t i = 0; i < GRAM_MAX_VIEWS; i++) {
+  for (uint32_t i = 0; i < GRAM_MAX_VIEWS; i++)
+  {
     view_table[i] = NULL;
     smob_table[i] = NULL;
   }
