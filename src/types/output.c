@@ -5,6 +5,7 @@
 #include "view.h"
 
 static struct gram_output *output_table[GRAM_MAX_OUTPUTS];
+static SCM smob_table[GRAM_MAX_VIEWS];
 static scm_t_bits gram_output_tag;
 
 static int
@@ -40,9 +41,10 @@ gram_output_scm (const wlc_handle output)
       if (output_table[i] == NULL)
       {
         output_table[i] = (struct gram_output *)
-          scm_gc_malloc (sizeof (struct gram_output), "output");
+          scm_gc_malloc_pointerless (sizeof (struct gram_output), "output");
 
         *(wlc_handle *) & output_table[i]->output = output;
+        smob_table[i] = scm_new_smob(gram_output_tag, (scm_t_bits) output_table[i]);
         break;
       }
     }
@@ -54,7 +56,7 @@ gram_output_scm (const wlc_handle output)
     return SCM_ELISP_NIL;
   }
   output_table[i]->active = true;
-  return scm_new_smob (gram_output_tag, (scm_t_bits) output_table[i]);
+  return smob_table[i];
 }
 
 /* Marks the table entry corresponding to `output` as invalid if it
@@ -83,6 +85,7 @@ gram_output_free (SCM _output)
     if (output_table[i] == output)
     {
       output_table[i] = NULL;
+      smob_table[i] = NULL;
     }
   }
 
@@ -265,6 +268,7 @@ init_gram_output (void)
   for (uint32_t i = 0; i < GRAM_MAX_OUTPUTS; i++)
   {
     output_table[i] = NULL;
+    smob_table[i] = NULL;
   }
 
   gram_output_tag =

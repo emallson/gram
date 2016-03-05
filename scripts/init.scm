@@ -1,10 +1,13 @@
 (use-modules (ice-9 popen)
              (srfi srfi-26)
+             (system repl server)
              ((gram view)
               #:renamer (symbol-prefix-proc 'view-))
              (gram keysym)
              ((gram output)
               #:renamer (symbol-prefix-proc 'output-)))
+
+(spawn-server)
 
 (display "Test from guile!\n")
 
