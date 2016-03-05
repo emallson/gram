@@ -61,13 +61,105 @@ view_created (wlc_handle view)
 static void
 view_destroyed (wlc_handle view)
 {
+  /* run the hook before freeing -- Unsure on correctness -- Investigate */
+  scm_with_guile(gram_view_destroyed_hook_run, &view);
   gram_view_deactivate (view);
 }
 
 static void
 view_focus (wlc_handle view, bool focus)
 {
+  struct view_focus_input input = {
+    .handle = view,
+    .focus = focus
+  };
+
   wlc_view_set_state (view, WLC_BIT_ACTIVATED, focus);
+  scm_with_guile(gram_view_focus_hook_run, &input);
+}
+
+static void
+view_move_to_output (wlc_handle view, wlc_handle from, wlc_handle to)
+{
+  struct move_to_output_input input = {
+    .view = view,
+    .from_out = from,
+    .to_out = to
+  };
+
+  scm_with_guile(gram_view_move_to_output_hook_run, &input);
+}
+
+static void
+view_render_pre (wlc_handle view) {
+  scm_with_guile(gram_view_render_pre_hook_run, &view);
+}
+
+static void
+view_render_post (wlc_handle view) {
+  scm_with_guile(gram_view_render_post_hook_run, &view);
+}
+
+static bool
+output_created (wlc_handle output) {
+  scm_with_guile(gram_output_created_hook_run, &output);
+  return true;
+}
+
+static void
+output_destroyed(wlc_handle output) {
+  scm_with_guile(gram_output_destroyed_hook_run, &output);
+}
+
+static void
+output_focus(wlc_handle output, bool focus) {
+  struct output_focus_input input = {
+    .handle = output,
+    .focus = focus
+  };
+  scm_with_guile(gram_output_focus_hook_run, &input);
+}
+
+static void
+output_resolution(wlc_handle output, const struct wlc_size *from, const struct wlc_size *to) {
+  struct resolution_input input = {
+    .handle = output,
+    .from = from,
+    .to = to
+  };
+  scm_with_guile(gram_output_resolution_hook_run, &input);
+}
+
+static void
+output_render_pre(wlc_handle output) {
+  scm_with_guile(gram_output_render_pre_hook_run, &output);
+}
+
+static void
+output_render_post(wlc_handle output) {
+  scm_with_guile(gram_output_render_post_hook_run, &output);
+}
+
+static bool
+pointer_motion(wlc_handle view, uint32_t time, const struct wlc_point* point) {
+  struct pointer_motion_input input = {
+    .view = view,
+    .time = time,
+    .point = point
+  };
+  scm_with_guile(gram_pointer_motion_hook_run, &input);
+  /* pointer motion always goes to the target view */
+  return false;
+}
+
+static void
+compositor_ready() {
+  scm_with_guile(gram_compositor_ready_hook_run, NULL);
+}
+
+static void
+compositor_terminate() {
+  scm_with_guile(gram_compositor_terminate_hook_run, NULL);
 }
 
 static void *
@@ -80,6 +172,7 @@ load_init (void *data)
 static void *
 init_guile (void *data)
 {
+  /* enables UTF-8 support */
   scm_setlocale (scm_variable_ref (scm_c_lookup ("LC_ALL")),
                  scm_from_locale_string (""));
   init_gram_types ();
@@ -111,14 +204,56 @@ main (int argc, char **argv)
 {
   /* *INDENT-OFF* */
   static struct wlc_interface interface = {
+    .output = {
+      .created = output_created, // Done - Untested
+      .destroyed = output_destroyed, // Done - Untested
+      .focus = output_focus, // Done - Untested
+      .resolution = output_resolution, // Done - Untested
+      .render = {
+        .pre = output_render_pre, // Done - Untested
+        .post = output_render_post // Done - Untested
+      }
+    },
     .view = {
-      .created = view_created,
-      .focus = view_focus,
-      .destroyed = view_destroyed,
+      .created = view_created, // Done
+      .destroyed = view_destroyed, // Done - Untested
+      .focus = view_focus, // Done - Untested
+      .move_to_output = view_move_to_output, // Done - Untested
+      /* punting on these for the moment */
+      /* .request = { */
+      /*   .geometry = view_request_geometry, */
+      /*   .state = view_request_state, */
+      /*   .move = view_request_move, */
+      /*   .resive = view_request_resize, */
+      /* }, */
+      .render = {
+        .pre = view_render_pre, // Done - Untested
+        .post = view_render_post // Done - Untested
+      }
     },
     .keyboard = {
-      .key = keyboard_key,
+      .key = keyboard_key, // Done - should add keyup
     },
+    .pointer = {
+      /* the .button and .scroll events should be tied into the key
+         system e.g. (kbd "M-Mouse1"), (kbd "M-ScrollUp") */
+      /* .button = pointer_button,  */
+      /* .scroll = pointer_scroll, */
+      /* .motion = pointer_motion, // Done - untested */
+    },
+    /* this .touch should also be tied into the key system */
+    /* .touch = { */
+    /*   .touch = touch_touch, */
+    /* }, */
+    .compositor = {
+      .ready = compositor_ready,
+      .terminate = compositor_terminate,
+    },
+    /* Experimental -- Don't see need for at the moment */
+    /* .input = { */
+    /*   .created = input_created, */
+    /*   .destroyed = input_destroyed, */
+    /* } */
   };
   /* *INDENT-ON* */
 
