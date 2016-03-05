@@ -3,7 +3,9 @@
              (system repl server)
              ((gram view)
               #:renamer (symbol-prefix-proc 'view-))
+             (gram view hooks)
              (gram keysym)
+             (gram keysym hooks)
              ((gram output)
               #:renamer (symbol-prefix-proc 'output-)))
 
