@@ -14,6 +14,7 @@ gram_compositor_terminate_hook_init (void)
   gram_compositor_terminate_hook_object =
     scm_permanent_object (scm_c_define
                           ("compositor-terminate-hook", gram_compositor_terminate_hook));
+  scm_c_export("compositor-terminate-hook", NULL);
 }
 
 void *

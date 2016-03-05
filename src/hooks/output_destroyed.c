@@ -15,6 +15,7 @@ gram_output_destroyed_hook_init (void)
   gram_output_destroyed_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-destroyed-hook", gram_output_destroyed_hook));
+  scm_c_export("output-destroyed-hook", NULL);
 }
 
 void *

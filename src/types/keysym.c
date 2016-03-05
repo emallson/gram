@@ -132,7 +132,7 @@ init_gram_keysym_fns (void *data)
   scm_c_define_gsubr ("swallow-next-key", 0, 0, 0, gram_key_swallow_next);
   scm_c_define_gsubr ("kbd", 1, 0, 0, gram_keysym_construct);
 
-  scm_c_export ("swallow-next-key", "kbd");
+  scm_c_export ("swallow-next-key", "kbd", NULL);
 }
 
 void

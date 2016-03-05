@@ -15,6 +15,7 @@ gram_output_render_pre_hook_init (void)
   gram_output_render_pre_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-render-pre-hook", gram_output_render_pre_hook));
+  scm_c_export("output-render-pre-hook", NULL);
 }
 
 void *

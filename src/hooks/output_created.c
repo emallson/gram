@@ -15,6 +15,7 @@ gram_output_created_hook_init (void)
   gram_output_created_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-created-hook", gram_output_created_hook));
+  scm_c_export("output-created-hook", NULL);
 }
 
 void *

@@ -14,6 +14,7 @@ gram_compositor_ready_hook_init (void)
   gram_compositor_ready_hook_object =
     scm_permanent_object (scm_c_define
                           ("compositor-ready-hook", gram_compositor_ready_hook));
+  scm_c_export("compositor-ready-hook", NULL);
 }
 
 void *

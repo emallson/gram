@@ -16,6 +16,7 @@ gram_view_move_to_output_hook_init (void)
   gram_view_move_to_output_hook_object =
     scm_permanent_object (scm_c_define
                           ("view-move-to-output-hook", gram_view_move_to_output_hook));
+  scm_c_export("view-move-to-output-hook", NULL);
 }
 
 void *

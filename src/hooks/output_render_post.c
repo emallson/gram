@@ -15,6 +15,7 @@ gram_output_render_post_hook_init (void)
   gram_output_render_post_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-render-post-hook", gram_output_render_post_hook));
+  scm_c_export("output-render-post-hook", NULL);
 }
 
 void *

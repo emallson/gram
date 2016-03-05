@@ -15,6 +15,7 @@ gram_output_focus_hook_init (void)
   gram_output_focus_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-focus-hook", gram_output_focus_hook));
+  scm_c_export("output-focus-hook", NULL);
 }
 
 void *

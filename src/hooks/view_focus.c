@@ -15,6 +15,7 @@ gram_view_focus_hook_init (void)
   gram_view_focus_hook_object =
     scm_permanent_object (scm_c_define
                           ("view-focus-hook", gram_view_focus_hook));
+  scm_c_export("view-focus-hook", NULL);
 }
 
 void *

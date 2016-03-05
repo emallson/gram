@@ -15,6 +15,7 @@ gram_view_render_pre_hook_init (void)
   gram_view_render_pre_hook_object =
     scm_permanent_object (scm_c_define
                           ("view-render-pre-hook", gram_view_render_pre_hook));
+  scm_c_export("view-render-pre-hook", NULL);
 }
 
 void *

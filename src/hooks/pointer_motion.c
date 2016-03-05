@@ -15,6 +15,7 @@ gram_pointer_motion_hook_init (void)
   gram_pointer_motion_hook_object =
     scm_permanent_object (scm_c_define
                           ("pointer-motion-hook", gram_pointer_motion_hook));
+  scm_c_export("pointer-motion-hook", NULL);
 }
 
 void *

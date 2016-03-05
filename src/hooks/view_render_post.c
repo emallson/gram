@@ -15,6 +15,7 @@ gram_view_render_post_hook_init (void)
   gram_view_render_post_hook_object =
     scm_permanent_object (scm_c_define
                           ("view-render-post-hook", gram_view_render_post_hook));
+  scm_c_export("view-render-post-hook", NULL);
 }
 
 void *

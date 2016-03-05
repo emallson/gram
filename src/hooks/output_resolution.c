@@ -15,6 +15,7 @@ gram_output_resolution_hook_init (void)
   gram_output_resolution_hook_object =
     scm_permanent_object (scm_c_define
                           ("output-resolution-hook", gram_output_resolution_hook));
+  scm_c_export("output-resolution-hook", NULL);
 }
 
 void *
