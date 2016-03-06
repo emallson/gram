@@ -15,8 +15,8 @@
          (assert-equal #f (mkzip #f))
          (assert-equal #f (mkzip "something"))
          (assert-equal #f (mkzip 3.14156))))
-       ("should return #f for the empty list"
-        (assert-false (mkzip '())))
+       ("should return a zipper with node #nil for the empty list"
+        (assert-equal #nil (zipper-node (mkzip '()))))
        ("should return a zipper for other lists"
         (assert-true (zipper? (mkzip '(a b c d))))))
 
@@ -62,24 +62,38 @@
 
 (suite "insert-left"
        ("should return #f for non-zippers"
-        (assert-false (insert-left #f 'a)))
+        (assert-false (insert-left 'a #f)))
        ("should add an element to the left"
-        (assert-equal '(a b) (unzip (insert-left (mkzip '(b)) 'a))))
+        (assert-equal '(a b) (unzip (insert-left 'a (mkzip '(b))))))
        ("should add an element to the left -- even when nested"
-        (assert-equal '((b) (a c)) (unzip (insert-left (go-down (go-right (mkzip '((b) (c))))) 'a)))))
+        (assert-equal '((b) (a c)) (unzip (insert-left 'a (go-down (go-right (mkzip '((b) (c))))))))))
 
 (suite "insert-right"
        ("should return #f for non-zippers"
-        (assert-false (insert-right #f 'a)))
+        (assert-false (insert-right 'a #f)))
+       ("should effectively swap for the empty zipper"
+        (assert-equal '(a) (unzip (insert-right 'a (mkzip '())))))
        ("should add an element to the right"
-        (assert-equal '(b a) (unzip (insert-right (mkzip '(b)) 'a))))
+        (assert-equal '(b a) (unzip (insert-right 'a (mkzip '(b))))))
        ("should add an element to the right -- even when nested"
-        (assert-equal '((b) (c a)) (unzip (insert-right (go-down (go-right (mkzip '((b) (c))))) 'a)))))
+        (assert-equal '((b) (c a)) (unzip (insert-right 'a (go-down (go-right (mkzip '((b) (c))))))))))
 
 (suite "swap"
        ("should return #f for non-zippers"
-        (assert-false (swap #f 'a)))
+        (assert-false (swap 'a #f)))
        ("should replace the current node in the new zipper"
-        (assert-equal '(b) (unzip (swap (mkzip '(a)) 'b))))
+        (assert-equal '(b) (unzip (swap 'b (mkzip '(a))))))
        ("should replace the current node in the new zipper -- even when nested"
-        (assert-equal '((b) (a)) (unzip (swap (go-down (go-right (mkzip '((b) (c))))) 'a)))))
+        (assert-equal '((b) (a)) (unzip (swap 'a (go-down (go-right (mkzip '((b) (c))))))))))
+
+(suite "kill"
+       ("should return #f for non-zippers"
+        (assert-false (kill 'a)))
+       ("should replace the current node with #nil if no right or left"
+        (assert-equal #nil (zipper-node (kill (mkzip '(a))))))
+       ("should replace the current node with (car right) if it exists"
+        (assert-equal 'b (zipper-node (kill (mkzip '(a b))))))
+       ("should replace the current node with (car left) if it exists but not (car right)"
+        (assert-equal 'a (zipper-node (kill (go-right (mkzip '(a b)))))))
+       ("should remove the element from the zipper entirely"
+        (assert-equal '() (unzip (kill (mkzip '(a)))))))
