@@ -1,0 +1,48 @@
+#!/usr/bin/env guile
+
+Test runner for gram. Adapted from Yawar Amin's ggspec runner.
+Copyright (c) 2016 J David Smith
+
+!#
+
+(add-to-load-path (string-append (dirname (current-filename)) "/" "external/"))
+(add-to-load-path (string-append (dirname (current-filename)) "/" "../"))
+
+(use-modules
+  (srfi srfi-1)
+  (ggspec lib)
+  (ice-9 ftw)
+  (ice-9 getopt-long)
+  (ice-9 rdelim))
+
+(define (run-tree dname opts)
+  "Run all test suites found in files in the given directory and all its
+  subdirectories, and aggregate and return the number of passed and
+  failed tests.
+
+  Arguments
+    dname: string: the name of the directory to look in for test
+    suites."
+  (define (up-down-skip path stat result) result)
+  (file-system-fold
+    (lambda _ #t)
+    (lambda (path stat result)
+      (define path-length (string-length path))
+
+      (if (equal? (substring path (- path-length 4)) ".scm")
+        (results-add result (run-file path opts))
+        result))
+    up-down-skip
+    up-down-skip
+    up-down-skip
+    (lambda (path stat errno result) result)
+    (list 0 0 0) ; Seed value of result: passes fails skips
+    dname))
+
+(let ((result (run-tree "test/lib" '())))
+  (output-tap
+   #:final-tally #t
+   #:tally-passed (suite-passed result)
+   #:tally-failed (suite-failed result)
+   #:tally-skipped (suite-skipped result))
+  (exit (suite-failed result)))

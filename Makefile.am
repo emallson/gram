@@ -22,8 +22,8 @@ gram_SOURCES_H = src/types/keysym.h src/types/view.h				\
 	src/hooks/view_focus.h src/hooks/view_move_to_output.h			\
 	src/hooks/view_render_post.h src/hooks/view_render_pre.h
 
-TESTS = keysym_check view_check
-check_PROGRAMS = $(TESTS)
+TESTS = keysym_check view_check lib_check
+check_PROGRAMS = keysym_check view_check
 keysym_check_SOURCES = src/types/keysym.c test/types/keysym_spec.c
 keysym_check_CFLAGS=$(AM_CFLAGS) @CHECK_CFLAGS@
 keysym_check_LDFLAGS=$(AM_LDFLAGS) @CHECK_LIBS@

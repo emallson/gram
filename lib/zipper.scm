@@ -1,7 +1,8 @@
 (define-module (gram lib zipper)
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 match)
-  #:export (zipper? zip extract swap
+  #:export (zipper? mkzip unzip swap
+                    zipper-node
                     insert-left insert-right
                     go-left go-right go-up go-down))
 
@@ -55,15 +56,15 @@
      (make-zipper new left up right))
     (_ #f)))
 
-(define (extract z)
+(define (unzip z)
   (match z
     (($ zipper node left #f right)
      (append (reverse left) (list node) right))
     (($ zipper _ _ _ _)
-     (extract (go-up z)))
+     (unzip (go-up z)))
     (_ #f)))
 
-(define (zip l)
+(define (mkzip l)
   (match l
     ((first rest ...)
      (make-zipper first '() #f rest))
