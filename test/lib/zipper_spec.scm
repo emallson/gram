@@ -1,20 +1,14 @@
-(use-modules (ggspec lib)
-             (gram lib zipper))
-
-(define-macro (suite name . tests)
-  `((@ (ggspec lib) suite) ,name
-          (tests ,@(map (lambda (test)
-                          `(test ,(string-append name " " (car test)) e ,(cadr test)))
-                        tests))
-          (options
-           (option 'output-cb output-tap))))
+(use-modules ((ggspec lib)
+              #:select (assert-all assert-false assert-equal assert-true))
+             (gram lib zipper)
+             (gram support test-setup))
 
 (suite "mkzip"
        ("should return #f for non-lists"
         (assert-all
-         (assert-equal #f (mkzip #f))
-         (assert-equal #f (mkzip "something"))
-         (assert-equal #f (mkzip 3.14156))))
+         (assert-false (mkzip #f))
+         (assert-false (mkzip "something"))
+         (assert-false (mkzip 3.14156))))
        ("should return a zipper with node #nil for the empty list"
         (assert-equal #nil (zipper-node (mkzip '()))))
        ("should return a zipper for other lists"

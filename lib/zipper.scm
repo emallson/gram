@@ -1,12 +1,12 @@
 (define-module (gram lib zipper)
-  #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
   #:export (zipper? mkzip unzip swap kill
                     zipper-node
                     insert-left insert-right
                     go-left go-right go-up go-down))
 
-(define-record-type zipper
+(define-immutable-record-type zipper
   (make-zipper node left up right)
   zipper?
   (node zipper-node)

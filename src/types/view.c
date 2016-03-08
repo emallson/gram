@@ -57,6 +57,15 @@ gram_view_scm (const wlc_handle view)
   return smob_table[i];
 }
 
+SCM
+gram_view_viewp (SCM maybe_view)
+{
+  if(SCM_SMOB_PREDICATE(gram_view_tag, maybe_view)) {
+    return SCM_BOOL_T;
+  }
+  return SCM_BOOL_F;
+}
+
 void
 gram_view_deactivate (const wlc_handle view)
 {
@@ -411,13 +420,15 @@ init_gram_view_methods (void *data)
   scm_c_define_gsubr ("get-app-id", 1, 0, 0, gram_view_get_app_id);
   scm_c_define_gsubr ("get-class", 1, 0, 0, gram_view_get_class);
   scm_c_define_gsubr ("get-type", 1, 0, 0, gram_view_get_type);
+  scm_c_define_gsubr ("view?", 1, 0, 0, gram_view_viewp);
 
   scm_c_export ("close", "bring-to-front", "send-to-back", "focus",
                 "get-geometry", "set-geometry",
                 "get-state", "set-state",
                 "get-parent", "set-parent",
                 "get-output", "set-output",
-                "get-app-id", "get-class", "get-type", NULL);
+                "get-app-id", "get-class", "get-type",
+                "view?", NULL);
 }
 
 void

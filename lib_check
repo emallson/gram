@@ -7,6 +7,8 @@ Copyright (c) 2016 J David Smith
 
 (add-to-load-path (string-append (dirname (current-filename)) "/" "external/"))
 (add-to-load-path (string-append (dirname (current-filename)) "/" "../"))
+(add-to-load-path (string-append (dirname (current-filename)) "/test/support/"))
+(add-to-load-path (string-append (dirname (current-filename)) "/test/mocks/"))
 
 (use-modules
   (srfi srfi-1)
