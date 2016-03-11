@@ -1,0 +1,19 @@
+(define-module (gram support test-setup)
+  #:use-module (srfi srfi-64)
+  #:export (suite))
+
+(define-syntax-rule (describe name . tests)
+  (begin
+    (map (lambda (test)
+           (test name))
+         tests)))
+
+(define-syntax-rule (it desc body ...)
+  (lambda (name)
+    (let ((title (string-append name " " desc)))
+      (test-begin title
+                  body ...))))
+
+
+(define (test-runner-tap filename)
+  )
