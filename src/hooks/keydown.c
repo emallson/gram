@@ -14,7 +14,7 @@ gram_keydown_hook_init (void)
     scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (1)));
   gram_keydown_hook_object =
     scm_permanent_object (scm_c_define ("keydown-hook", gram_keydown_hook));
-  scm_c_export("keydown-hook", NULL);
+  scm_c_export ("keydown-hook", NULL);
 }
 
 void *

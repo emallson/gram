@@ -13,14 +13,14 @@ gram_compositor_ready_hook_init (void)
     scm_permanent_object (scm_make_hook (scm_from_unsigned_integer (0)));
   gram_compositor_ready_hook_object =
     scm_permanent_object (scm_c_define
-                          ("compositor-ready-hook", gram_compositor_ready_hook));
-  scm_c_export("compositor-ready-hook", NULL);
+                          ("compositor-ready-hook",
+                           gram_compositor_ready_hook));
+  scm_c_export ("compositor-ready-hook", NULL);
 }
 
 void *
 gram_compositor_ready_hook_run (void *data)
 {
-  scm_c_run_hook (gram_compositor_ready_hook,
-                  SCM_EOL);
+  scm_c_run_hook (gram_compositor_ready_hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }

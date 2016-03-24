@@ -60,7 +60,8 @@ gram_view_scm (const wlc_handle view)
 SCM
 gram_view_viewp (SCM maybe_view)
 {
-  if(SCM_SMOB_PREDICATE(gram_view_tag, maybe_view)) {
+  if (SCM_SMOB_PREDICATE (gram_view_tag, maybe_view))
+  {
     return SCM_BOOL_T;
   }
   return SCM_BOOL_F;
@@ -427,8 +428,7 @@ init_gram_view_methods (void *data)
                 "get-state", "set-state",
                 "get-parent", "set-parent",
                 "get-output", "set-output",
-                "get-app-id", "get-class", "get-type",
-                "view?", NULL);
+                "get-app-id", "get-class", "get-type", "view?", NULL);
 }
 
 void

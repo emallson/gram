@@ -71,9 +71,8 @@ START_TEST (test_keysym_kbd)
 
   scm_c_use_module ("gram keysym");
 
-  SCM res =
-    scm_call_1 (scm_variable_ref (scm_c_lookup ("kbd")),
-                scm_from_locale_string ("M-x"));
+  SCM res = scm_call_1 (scm_variable_ref (scm_c_lookup ("kbd")),
+                        scm_from_locale_string ("M-x"));
 
   scm_assert_smob_type (gram_keysym_tag, res);
   struct gram_keysym ks = *(struct gram_keysym *) SCM_SMOB_DATA (res);
@@ -298,7 +297,8 @@ START_TEST (test_keysym_swallow)
   ck_assert_ptr_eq (res, SCM_BOOL_T);
 }
 
-END_TEST Suite * keysym_suite (void)
+END_TEST Suite *
+keysym_suite (void)
 {
   Suite *s;
   TCase *tc_core, *tc_convert, *tc_equalp, *tc_display, *tc_swallow;

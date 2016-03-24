@@ -44,7 +44,8 @@ gram_output_scm (const wlc_handle output)
           scm_gc_malloc_pointerless (sizeof (struct gram_output), "output");
 
         *(wlc_handle *) & output_table[i]->output = output;
-        smob_table[i] = scm_new_smob(gram_output_tag, (scm_t_bits) output_table[i]);
+        smob_table[i] =
+          scm_new_smob (gram_output_tag, (scm_t_bits) output_table[i]);
         break;
       }
     }
@@ -206,38 +207,42 @@ gram_output_set_views (SCM _output, SCM _views)
       }
     }
     wlc_output_set_views (output->output, views, num_views);
-    free(views);
+    free (views);
     return _output;
   }
   return SCM_ELISP_NIL;
 }
 
 SCM
-gram_output_set_resolution(SCM _output, SCM _res)
+gram_output_set_resolution (SCM _output, SCM _res)
 {
-  scm_assert_smob_type(gram_output_tag, _output);
-  if(!scm_pair_p(_res)) return SCM_ELISP_NIL;
+  scm_assert_smob_type (gram_output_tag, _output);
+  if (!scm_pair_p (_res))
+    return SCM_ELISP_NIL;
 
   struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
-  if(output->active) {
+  if (output->active)
+  {
     struct wlc_size res;
-    res.w = scm_to_uint32(scm_car(_res));
-    res.h = scm_to_uint32(scm_cdr(_res));
-    wlc_output_set_resolution(output->output, &res);
+    res.w = scm_to_uint32 (scm_car (_res));
+    res.h = scm_to_uint32 (scm_cdr (_res));
+    wlc_output_set_resolution (output->output, &res);
     return _output;
   }
   return SCM_ELISP_NIL;
 }
 
 SCM
-gram_output_set_sleep(SCM _output, SCM _sleep)
+gram_output_set_sleep (SCM _output, SCM _sleep)
 {
-  scm_assert_smob_type(gram_output_tag, _output);
-  if(!scm_boolean_p(_sleep)) return SCM_ELISP_NIL;
+  scm_assert_smob_type (gram_output_tag, _output);
+  if (!scm_boolean_p (_sleep))
+    return SCM_ELISP_NIL;
 
   struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
-  if(output->active) {
-    wlc_output_set_sleep(output->output, scm_to_bool(_sleep));
+  if (output->active)
+  {
+    wlc_output_set_sleep (output->output, scm_to_bool (_sleep));
     return _output;
   }
   return SCM_ELISP_NIL;
@@ -255,8 +260,8 @@ init_gram_output_methods (void *ignore)
   scm_c_define_gsubr ("set-resolution", 2, 0, 0, gram_output_set_resolution);
   scm_c_define_gsubr ("set-sleep", 2, 0, 0, gram_output_set_sleep);
   scm_c_export ("focus",
-                                                /* "get-mask", */ "get-views",
-                                                /* "get-mutable-views", */
+                /* "get-mask", */ "get-views",
+                /* "get-mutable-views", */
                 "get-name", "get-resolution", "get-sleep",
                 /* "set-mask", */ "set-resolution", "set-sleep", "set-views",
                 NULL);

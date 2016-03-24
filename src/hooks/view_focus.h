@@ -2,7 +2,8 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
 
-struct view_focus_input {
+struct view_focus_input
+{
   wlc_handle handle;
   bool focus;
 };

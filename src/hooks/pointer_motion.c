@@ -15,16 +15,16 @@ gram_pointer_motion_hook_init (void)
   gram_pointer_motion_hook_object =
     scm_permanent_object (scm_c_define
                           ("pointer-motion-hook", gram_pointer_motion_hook));
-  scm_c_export("pointer-motion-hook", NULL);
+  scm_c_export ("pointer-motion-hook", NULL);
 }
 
 void *
 gram_pointer_motion_hook_run (void *data)
 {
-  struct pointer_motion_input* input = (struct pointer_motion_input*) data;
+  struct pointer_motion_input *input = (struct pointer_motion_input *) data;
   scm_c_run_hook (gram_pointer_motion_hook,
-                  scm_list_2 (gram_view_scm(input->view),
-                              scm_cons(scm_from_uint32(input->point->x),
-                                       scm_from_uint32(input->point->y))));
+                  scm_list_2 (gram_view_scm (input->view),
+                              scm_cons (scm_from_uint32 (input->point->x),
+                                        scm_from_uint32 (input->point->y))));
   return SCM_UNSPECIFIED;
 }

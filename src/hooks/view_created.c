@@ -15,7 +15,7 @@ gram_view_created_hook_init (void)
   gram_view_created_hook_object =
     scm_permanent_object (scm_c_define
                           ("view-created-hook", gram_view_created_hook));
-  scm_c_export("view-created-hook", NULL);
+  scm_c_export ("view-created-hook", NULL);
 }
 
 void *

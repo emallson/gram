@@ -63,7 +63,7 @@ static void
 view_destroyed (wlc_handle view)
 {
   /* run the hook before freeing -- Unsure on correctness -- Investigate */
-  scm_with_guile(gram_view_destroyed_hook_run, &view);
+  scm_with_guile (gram_view_destroyed_hook_run, &view);
   gram_view_deactivate (view);
 }
 
@@ -76,7 +76,7 @@ view_focus (wlc_handle view, bool focus)
   };
 
   wlc_view_set_state (view, WLC_BIT_ACTIVATED, focus);
-  scm_with_guile(gram_view_focus_hook_run, &input);
+  scm_with_guile (gram_view_focus_hook_run, &input);
 }
 
 static void
@@ -88,87 +88,102 @@ view_move_to_output (wlc_handle view, wlc_handle from, wlc_handle to)
     .to_out = to
   };
 
-  scm_with_guile(gram_view_move_to_output_hook_run, &input);
+  scm_with_guile (gram_view_move_to_output_hook_run, &input);
 }
 
 static void
-view_render_pre (wlc_handle view) {
-  scm_with_guile(gram_view_render_pre_hook_run, &view);
+view_render_pre (wlc_handle view)
+{
+  scm_with_guile (gram_view_render_pre_hook_run, &view);
 }
 
 static void
-view_render_post (wlc_handle view) {
-  scm_with_guile(gram_view_render_post_hook_run, &view);
+view_render_post (wlc_handle view)
+{
+  scm_with_guile (gram_view_render_post_hook_run, &view);
 }
 
 static bool
-output_created (wlc_handle output) {
-  scm_with_guile(gram_output_created_hook_run, &output);
+output_created (wlc_handle output)
+{
+  scm_with_guile (gram_output_created_hook_run, &output);
   return true;
 }
 
 static void
-output_destroyed(wlc_handle output) {
-  scm_with_guile(gram_output_destroyed_hook_run, &output);
+output_destroyed (wlc_handle output)
+{
+  scm_with_guile (gram_output_destroyed_hook_run, &output);
 }
 
 static void
-output_focus(wlc_handle output, bool focus) {
+output_focus (wlc_handle output, bool focus)
+{
   struct output_focus_input input = {
     .handle = output,
     .focus = focus
   };
-  scm_with_guile(gram_output_focus_hook_run, &input);
+  scm_with_guile (gram_output_focus_hook_run, &input);
 }
 
 static void
-output_resolution(wlc_handle output, const struct wlc_size *from, const struct wlc_size *to) {
+output_resolution (wlc_handle output, const struct wlc_size *from,
+                   const struct wlc_size *to)
+{
   struct resolution_input input = {
     .handle = output,
     .from = from,
     .to = to
   };
-  scm_with_guile(gram_output_resolution_hook_run, &input);
+  scm_with_guile (gram_output_resolution_hook_run, &input);
 }
 
 static void
-output_render_pre(wlc_handle output) {
-  scm_with_guile(gram_output_render_pre_hook_run, &output);
+output_render_pre (wlc_handle output)
+{
+  scm_with_guile (gram_output_render_pre_hook_run, &output);
 }
 
 static void
-output_render_post(wlc_handle output) {
-  scm_with_guile(gram_output_render_post_hook_run, &output);
+output_render_post (wlc_handle output)
+{
+  scm_with_guile (gram_output_render_post_hook_run, &output);
 }
 
 static bool
-pointer_motion(wlc_handle view, uint32_t time, const struct wlc_point* point) {
+pointer_motion (wlc_handle view, uint32_t time, const struct wlc_point *point)
+{
   struct pointer_motion_input input = {
     .view = view,
     .time = time,
     .point = point
   };
-  scm_with_guile(gram_pointer_motion_hook_run, &input);
+  scm_with_guile (gram_pointer_motion_hook_run, &input);
   /* pointer motion always goes to the target view */
   return false;
 }
 
 static void
-compositor_ready() {
-  scm_with_guile(gram_compositor_ready_hook_run, NULL);
+compositor_ready ()
+{
+  scm_with_guile (gram_compositor_ready_hook_run, NULL);
 }
 
 static void
-compositor_terminate() {
-  scm_with_guile(gram_compositor_terminate_hook_run, NULL);
+compositor_terminate ()
+{
+  scm_with_guile (gram_compositor_terminate_hook_run, NULL);
 }
 
 static void *
 load_init (void *data)
 {
-  scm_variable_set_x(scm_c_lookup("%load-path"),
-                     scm_append(scm_list_2(scm_variable_ref( scm_c_lookup("%load-path")),
-                                           scm_list_1(scm_from_locale_string(SCHEME_DIR)))));
+  scm_variable_set_x (scm_c_lookup ("%load-path"),
+                      scm_append (scm_list_2
+                                  (scm_variable_ref
+                                   (scm_c_lookup ("%load-path")),
+                                   scm_list_1 (scm_from_locale_string
+                                               (SCHEME_DIR)))));
   scm_c_primitive_load ((char *) data);
   return SCM_UNSPECIFIED;
 }
