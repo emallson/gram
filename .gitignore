@@ -21,3 +21,4 @@
 /keysym_check
 *.trs
 /view_check
+/src/config.h

@@ -7,7 +7,8 @@
              (gram keysym)
              (gram keysym hooks)
              ((gram output)
-              #:renamer (symbol-prefix-proc 'output-)))
+              #:renamer (symbol-prefix-proc 'output-))
+             (gram lib zipper))
 
 (spawn-server)
 

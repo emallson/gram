@@ -7,6 +7,7 @@ AM_SILENT_RULES([yes])
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
 AC_CONFIG_SRCDIR([src/gram.c])
+AC_CONFIG_HEADERS([src/config.h])
 
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([unistd.h])

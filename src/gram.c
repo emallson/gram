@@ -6,6 +6,7 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
 
+#include "config.h"
 #include "types/types.h"
 #include "hooks/hooks.h"
 
@@ -165,6 +166,9 @@ compositor_terminate() {
 static void *
 load_init (void *data)
 {
+  scm_variable_set_x(scm_c_lookup("%load-path"),
+                     scm_append(scm_list_2(scm_variable_ref( scm_c_lookup("%load-path")),
+                                           scm_list_1(scm_from_locale_string(SCHEME_DIR)))));
   scm_c_primitive_load ((char *) data);
   return SCM_UNSPECIFIED;
 }

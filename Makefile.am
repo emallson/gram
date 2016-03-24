@@ -1,4 +1,5 @@
-AM_CFLAGS=@GUILE_CFLAGS@ @WLC_CFLAGS@ -Wall -g
+SCHEME_DIR ?= "$(pkgdatadir)/site-scheme"
+AM_CFLAGS=@GUILE_CFLAGS@ @WLC_CFLAGS@ -Wall -g -DSCHEME_DIR="\"$(SCHEME_DIR)\""
 AM_LDFLAGS=@GUILE_LIBS@ @WLC_LIBS@
 bin_PROGRAMS = gram
 gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c		\
@@ -21,6 +22,8 @@ gram_SOURCES_H = src/types/keysym.h src/types/view.h				\
 	src/hooks/pointer_motion.h src/hooks/view_destroyed.h			\
 	src/hooks/view_focus.h src/hooks/view_move_to_output.h			\
 	src/hooks/view_render_post.h src/hooks/view_render_pre.h
+
+dist_pkgdata_DATA = lib/gram/lib/layout.scm lib/gram/lib/render.scm lib/gram/lib/zipper.scm
 
 TESTS = keysym_check view_check lib_check
 check_PROGRAMS = keysym_check view_check
