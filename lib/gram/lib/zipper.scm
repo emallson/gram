@@ -1,10 +1,12 @@
 (define-module (gram lib zipper)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
+  #:use-module (oop goops)
   #:export (zipper? mkzip unzip swap kill
                     zipper-node
                     insert-left insert-right
-                    go-left go-right go-up go-down))
+                    go-left go-right go-up go-down
+                    extract children))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -26,18 +28,31 @@
      (make-zipper next (cons node left) up rest))
     (_ #f)))
 
+(define-generic extract)
+(define-method (extract (kids <list>) (old-parent <list>))
+  kids)
+
 (define (go-up z)
   (match z
-    (($ zipper #nil '() ($ zipper _ left up right) '())
-     (make-zipper '() left up right))
-    (($ zipper node left ($ zipper _ uleft uup uright) right)
-     (make-zipper (append (reverse left) (list node) right) uleft uup uright))
+    (($ zipper #nil '() ($ zipper old left up right) '())
+     (make-zipper (extract '() old)
+                  left up right))
+    (($ zipper node left ($ zipper old uleft uup uright) right)
+     (make-zipper (extract (append (reverse left) (list node) right) old)
+                  uleft uup uright))
     (_ #f)))
+
+(define-generic children)
+(define-method (children (lst <list>)) lst)
+(define-method (children atom) #nil)
 
 (define (go-down z)
   (match z
-    (($ zipper (next rest ...) _ _ _)
-     (make-zipper next '() z rest))
+    (($ zipper node _ _ _)
+     (let ((kids (children node)))
+       (if (eq? kids #nil)
+           #f
+           (make-zipper (car kids) '() z (cdr kids)))))
     (_ #f)))
 
 (define (insert-right new z)

@@ -1,5 +1,7 @@
 (use-modules ((ggspec lib)
               #:select (assert-all assert-false assert-equal assert-true))
+             (srfi srfi-9 gnu)
+             (oop goops)
              (gram lib zipper)
              (gram support test-setup))
 
@@ -38,13 +40,28 @@
        ("should return a zipper to the right otherwise"
         (assert-equal 'b (zipper-node (go-right (mkzip '(a b c d)))))))
 
+(define-immutable-record-type zippable-test
+  (make-zt children other)
+  zt?
+  (children zt-children set-zt-children)
+  (other zt-other))
+
+(define-method (children (zt <zippable-test>))
+  (zt-children zt))
+
+(define-method (extract kids (old-zt <zippable-test>))
+  (set-zt-children old-zt kids))
+
 (suite "go-up"
        ("should return #f for non-zippers"
         (assert-false (go-up #f)))
        ("should return #f if there is nothing upwards"
         (assert-false (go-up (mkzip '(a b c d)))))
        ("should return a zipper up otherwise"
-        (assert-equal '(a) (zipper-node (go-up (go-down (mkzip '((a) b c))))))))
+        (assert-equal '(a) (zipper-node (go-up (go-down (mkzip '((a) b c)))))))
+       ("should use `extract' to go up from inside a record"
+        (assert-equal (make-zt '(a b) 'c)
+                      (zipper-node (go-up (insert-right 'b (go-down (mkzip (list (make-zt '(a) 'c))))))))))
 
 (suite "go-down"
        ("should return #f for non-zippers"
@@ -52,7 +69,10 @@
        ("should return #f if there is nothing downwards"
         (assert-false (go-down (mkzip '(a b c d)))))
        ("should return a zipper down otherwise"
-        (assert-equal 'a (zipper-node (go-down (mkzip '((a) b c)))))))
+        (assert-equal 'a (zipper-node (go-down (mkzip '((a) b c))))))
+       ("should use `children' to go down into a record"
+        (assert-equal 'a
+                      (zipper-node (go-down (mkzip (list (make-zt '(a) 'c))))))))
 
 (suite "insert-left"
        ("should return #f for non-zippers"
