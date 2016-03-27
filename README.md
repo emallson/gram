@@ -3,8 +3,14 @@ Gram
 
 Gram is a highly experimental Wayland window manager.
 
-Eventually, it will be a tiling window manager, but for now it just
-throws things on the screen.
+*Current Status:* Bare-bones. Basic column, row, and tall
+[layouts](lib/gram/lib/layout.scm) implemented with lifecycle
+management for views, but no:
+
+- Window Motion (easy)
+- Floating Layer (harder)
+- Mouse support (hard)
+- Workspaces (???)
 
 Dependencies
 ============
