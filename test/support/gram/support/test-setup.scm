@@ -14,13 +14,8 @@
   (begin
     (map (lambda (test)
            (cons (list 'it name) (cdr test)))
-         tests)))
+         (list tests ...))))
 
 (define-syntax-rule (it name desc body ...)
   (test-begin (string-append name " " desc)
               body ...))
-
-(describe "foo"
-          (it "should bar"
-           #t)
-          (it "should baz" #f))

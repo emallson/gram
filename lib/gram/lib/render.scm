@@ -1,5 +1,6 @@
 (define-module (gram lib render)
   #:use-module (srfi srfi-9 gnu)
+  #:use-module (oop goops)
   #:use-module (ice-9 match)
   #:use-module ((gram view)
                 #:renamer (symbol-prefix-proc 'view-))
@@ -20,28 +21,57 @@
   (origin rview-origin set-rview-origin)
   (dimensions rview-dimensions set-rview-dimensions))
 
+(define-immutable-record-type layout
+  (make-layout type render views opts)
+  layout?
+  (type layout-type layout-set-type)
+  (render layout-render-fn layout-set-render-fn)
+  (views layout-views layout-set-views)
+  (opts layout-opts layout-set-opts))
+
+(define-syntax-rule (define-layout name opts render)
+  (define* (name #:keys opts #:rest views)
+    (make-layout name render (remove-keys views) (kvs->alist (only-keys views)))))
+
 (define (remove-keys ls)
   "Remove all keys and key-value pairs from list `ls'."
   (let ((key-indices (filter (lambda (v) (not (unspecified? v)))
-                             (map-in-order (lambda (v i)
-                                             (when (keyword? v)
-                                               i))
+                             (map-in-order (lambda (v i) (when (keyword? v) i))
                                            ls (iota (length ls))))))
     (filter
      (lambda (v) (not (unspecified? v)))
      (map-in-order (lambda (v i)
                             (unless (or (member i key-indices)
+                                    (member (- i 1) key-indices)) v))
+                          ls (iota (length ls))))))
+
+(define (only-keys ls)
+  "Remove all keys and key-value pairs from list `ls'."
+  (let ((key-indices (filter (lambda (v) (not (unspecified? v)))
+                             (map-in-order (lambda (v i)
+                                             (when (keyword? v) i))
+                                           ls (iota (length ls))))))
+    (filter
+     (lambda (v) (not (unspecified? v)))
+     (map-in-order (lambda (v i)
+                            (when (or (member i key-indices)
                                     (member (- i 1) key-indices))
                                 v))
                           ls (iota (length ls))))))
 
+(define (kvs->alist kvs)
+  (if (null? kvs)
+      kvs
+      (acons (keyword->symbol (car kvs))
+             (cadr kvs)
+             (kvs->alist (cddr kvs)))))
+
 (define (flatten-once ls)
   (apply append
-         (map-in-order (lambda (v)
-                         (if (list? v)
-                             v
-                             (list v)))
-                       ls)))
+         (map-in-order
+          (lambda (v)
+            (if (list? v) v (list v)))
+          ls)))
 
 (define-syntax-rule (define-layout name (opts ...) (views geo out) docstring body ...)
   "Defines a layout function that takes options `opts' as keywords and

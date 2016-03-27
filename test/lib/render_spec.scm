@@ -23,21 +23,21 @@
        ("should flatten a list by exactly one level"
         (assert-equal '(a (b (c d)) e f g) (flatten-once '(a ((b (c d)) e f) g)))))
 
-(define (assert-map-all ls assertion)
-  (apply assert-all (map assertion ls)))
+;; (define (assert-map-all ls assertion)
+;;   (apply assert-all (map assertion ls)))
 
-(suite "make-renderable"
-       ("should return an rview given a view"
-        (let ((rv (make-renderable 'test-view 'out
-                                   '(0 . 0) '(100 . 100))))
-          (assert-all
-           (assert-true (rview? rv))
-           (assert-equal (rview-view rv) 'test-view)
-           (assert-equal (rview-output rv) 'out))))
-       ("should return a list of rviews given a layout procedure"
-        (let ((rvs (make-renderable (lambda (dims out)
-                                      (list
-                                       (make-rview 'a out '(0 . 0) '(100 . 100))
-                                       (make-rview 'b out '(100 . 0) '(100 . 100))))
-                                    'out '(10 . 10) '(100 . 100))))
-          (assert-map-all rvs rview?))))
+;; (suite "make-renderable"
+;;        ("should return an rview given a view"
+;;         (let ((rv (make-renderable 'test-view 'out
+;;                                    '(0 . 0) '(100 . 100))))
+;;           (assert-all
+;;            (assert-true (rview? rv))
+;;            (assert-equal (rview-view rv) 'test-view)
+;;            (assert-equal (rview-output rv) 'out))))
+;;        ("should return a list of rviews given a layout procedure"
+;;         (let ((rvs (make-renderable (lambda (dims out)
+;;                                       (list
+;;                                        (make-rview 'a out '(0 . 0) '(100 . 100))
+;;                                        (make-rview 'b out '(100 . 0) '(100 . 100))))
+;;                                     'out '(10 . 10) '(100 . 100))))
+;;           (assert-map-all rvs rview?))))
