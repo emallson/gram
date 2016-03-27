@@ -1,17 +1,14 @@
 (define-module (gram lib render)
   #:use-module (srfi srfi-9 gnu)
+  #:use-module (srfi srfi-26)
   #:use-module (oop goops)
   #:use-module (ice-9 match)
   #:use-module ((gram view)
                 #:renamer (symbol-prefix-proc 'view-))
   #:use-module ((gram output)
                 #:renamer (symbol-prefix-proc 'output-))
-  #:export     (define-layout make-renderable output render
-                make-rview
-                rview-view set-rview-view
-                rview-output set-rview-output
-                rview-origin set-rview-origin
-                rview-dimensions set-rview-dimensions))
+  #:export     (define-layout place output render!
+                layout-with))
 
 (define-immutable-record-type rview
   (make-rview view output origin dimensions)
@@ -29,9 +26,17 @@
   (views layout-views layout-set-views)
   (opts layout-opts layout-set-opts))
 
-(define-syntax-rule (define-layout name opts render)
-  (define* (name #:keys opts #:rest views)
-    (make-layout name render (remove-keys views) (kvs->alist (only-keys views)))))
+(set-record-type-printer!
+ layout
+ (lambda (rec port)
+   (match rec
+     (($ layout type _ views opts)
+      (format port "(~s~{ ~s~}~{ ~s~})" type (alist->kvs opts) views))
+     (_ (error "Unable to display record" rec)))))
+
+(define-generic place)
+(define-method (place (view <view>) (output <output>) (origin <pair>) (dims <pair>))
+  (make-rview view output origin dims))
 
 (define (remove-keys ls)
   "Remove all keys and key-value pairs from list `ls'."
@@ -66,6 +71,27 @@
              (cadr kvs)
              (kvs->alist (cddr kvs)))))
 
+(define (alist->kvs alist)
+  (if (null? alist)
+      alist
+      (flatten-once (map (lambda (pair)
+                           (list (symbol->keyword (car pair))
+                                 (cdr pair)))
+                         alist))))
+
+(define-syntax define-layout
+  (syntax-rules ()
+    ((_ name (opts ...) render)
+     (define-layout name (opts ...) "" render))
+    ((_ name (opts ...) docstring render)
+     (begin
+       (define* (name #:key opts ... #:rest views)
+         docstring
+         (make-layout (procedure-name name)
+                      render
+                      (remove-keys views)
+                      (kvs->alist (only-keys views))))))))
+
 (define (flatten-once ls)
   (apply append
          (map-in-order
@@ -73,33 +99,30 @@
             (if (list? v) v (list v)))
           ls)))
 
-(define-syntax-rule (define-layout name (opts ...) (views geo out) docstring body ...)
-  "Defines a layout function that takes options `opts' as keywords and
-rest argument `views' and produces a lambda accepting arguments named
-`geo' and `out'. The body of this lambda is `body'."
-  (define* (name #:key opts ... #:rest _views)
-    docstring
-    (let ((views (remove-keys _views)))
-      (lambda (geo out)
-        (flatten-once (begin body ...))))))
-
 (define (cons-add a b)
   (cons (+ (car a) (car b))
         (+ (cdr a) (cdr b))))
 
-(define (shift-origins vols origin)
+(define (shift-origins origin vols)
   (map (lambda (vol)
-         (if (rview? vol)
-             (set-rview-origin vol (cons-add origin (rview-origin vol)))
-             (shift-origins vol origin)))
+         (set-rview-origin vol (cons-add origin (rview-origin vol))))
        vols))
 
-(define (make-renderable view-or-layout output origin dimensions)
-  (if (procedure? view-or-layout)
-      (shift-origins (view-or-layout dimensions output) origin)
-      (make-rview view-or-layout output origin dimensions)))
+(define-method (place (layout <layout>) (output <output>) (origin <pair>) (dims <pair>))
+  (let ((render (layout-render-fn layout)))
+    (shift-origins origin (flatten-once (render (layout-views layout) (layout-opts layout) output dims)))))
 
-(define (render-rview rv)
+(define (layout-with layout-fn views opts output dims)
+  "Layout the given `views' with `layout-fn'.
+Use this function to compose layouts. A practical example of this is
+given in the `rows' layout, which is defined in terms of the `columns'
+layout."
+  (place (apply layout-fn (append (alist->kvs opts) views))
+         output '(0 . 0) dims))
+
+(define (render-rview! rv)
+  "Renders an individual rview onto the screen by setting the output
+and geometry of the view smob."
   (match rv
     (($ rview view output origin dimensions)
      (when (view-view? view)
@@ -107,14 +130,14 @@ rest argument `views' and produces a lambda accepting arguments named
        (view-set-geometry view (cons origin dimensions))))
     (_ #f)))
 
-(define* (output out #:rest trees)
+(define* (output out #:rest layouts)
   "Place each layout in `trees' on output `out'."
   (map (lambda (t)
-         (t (output-get-resolution out) out)) trees))
+         (place t out '(0 . 0) (output-get-resolution out))) layouts))
 
-(define (render tree)
+(define (render! tree)
   "Render a layout tree. `tree' should be a syntax tree that can be evaluated
 in the scope of the (gram lib render) module."
   (letrec ((mod (resolve-module '(gram lib render)))
            (rviews (eval tree mod)))
-    (map render-rview rviews)))
+    (map render-rview! rviews)))

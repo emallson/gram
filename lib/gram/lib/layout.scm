@@ -4,27 +4,28 @@
   #:use-module (gram lib render)
   #:export     (tall wide))
 
-(define-layout tall (weights) (views geometry output)
+(define-layout columns ((weights #nil))
   "Lay out windows in columns, with the weights option specifying
 their relative sizes."
-  (match geometry
-    ((width . height)
-     (let ((view-width (floor/ width (length views))))
-       (map-in-order
-        (lambda (v i)
-          (make-renderable v output
-                      (cons (* i view-width) 0)
-                      (cons view-width height)))
-        views (iota (length views)))))))
+  (lambda (views opts output dims)
+    (match dims
+      ((width . height)
+       (let ((view-width (floor/ width (length views))))
+         (map
+          (lambda (v i)
+            (place v output
+                   (cons (* i view-width) 0)
+                   (cons view-width height)))
+          views (iota (length views))))))))
 
 (define (cons-rev c)
   (cons (cdr c) (car c)))
 
-(define-layout wide (weights) (views geometry output)
+(define-layout rows ((weights #nil))
   "Lay out windows in rows, with relative sizes specified by the
 weights option."
-  (map-in-order
-   (lambda (rv)
-     (let ((irv (set-rview-origin rv (cons-rev (rview-origin rv)))))
-       (set-rview-dimensions irv (cons-rev (rview-dimensions rv)))))
-   ((apply tall (append (list #:weights weights) views)) (cons-rev geometry) output)))
+  (lambda (views opts output dims)
+    (map (lambda (rv)
+           (let ((irv (set-rview-origin rv (cons-rev (rview-origin rv)))))
+             (set-rview-dimensions irv (cons-rev (rview-dimensions rv)))))
+         (layout-with columns views opts output (cons-rev dims)))))
