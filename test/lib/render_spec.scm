@@ -1,4 +1,5 @@
-(use-modules (gram lib render)
+(use-modules (ggspec lib)
+             (gram lib render)
              (gram support test-setup))
 
 ;;; testing these two even though they are private because the

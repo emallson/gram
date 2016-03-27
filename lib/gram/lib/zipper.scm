@@ -89,7 +89,10 @@
     (($ zipper node (next rest ...) up '())
      (make-zipper next rest up '()))
     (($ zipper node '() up '())
-     (make-zipper #nil '() up '()))))
+     (make-zipper #nil '() up '()))
+    (($ zipper _ #f #f #f)
+     (make-zipper #nil #f #f #f))
+    (_ #f)))
 
 (define (unzip z)
   (match z
