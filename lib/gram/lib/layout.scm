@@ -36,7 +36,8 @@ weights option."
          (layout-with columns views opts output (cons-rev dims)))))
 
 (define-layout tall ((weights #nil) (main #nil))
-  "Lay out one window (the master)"
+  "Lay out one window (the master) full height, and the remaining in
+rows next to it."
   (lambda (views opts output dims)
     (let* ((main (or (assoc-ref opts 'main) (car views)))
            (rest (delq main views)))
