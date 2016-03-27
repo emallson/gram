@@ -3,14 +3,13 @@
   #:use-module (srfi srfi-26)
   #:use-module (oop goops)
   #:use-module (ice-9 match)
-  #:use-module ((gram lib zipper)
-                #:select (children extract))
+  #:use-module (gram lib zipper)
   #:use-module ((gram view)
                 #:renamer (symbol-prefix-proc 'view-))
   #:use-module ((gram output)
                 #:renamer (symbol-prefix-proc 'output-))
-  #:export     (define-layout place output render!
-                layout-with
+  #:export     (define-layout place render-post-hook render!
+                layout? layout-with
                 rview?
                 rview-view rview-set-view
                 rview-origin rview-set-origin
@@ -18,9 +17,6 @@
                 rview-dimensions rview-set-dimensions))
 
 (define-generic place)
-(define-method (place (view <view>) (output <output>) (origin <pair>) (dims <pair>))
-  (make-rview view output origin dims))
-
 
 (define-immutable-record-type rview
   (make-rview view output origin dimensions)
@@ -29,6 +25,9 @@
   (output rview-output rview-set-output)
   (origin rview-origin rview-set-origin)
   (dimensions rview-dimensions rview-set-dimensions))
+
+(define-method (place (view <view>) (output <output>) (origin <pair>) (dims <pair>))
+  (make-rview view output origin dims))
 
 (define-immutable-record-type layout
   (make-layout type render views opts)
@@ -123,14 +122,20 @@
        vols))
 
 (define-method (place (layout <layout>) (output <output>) (origin <pair>) (dims <pair>))
-  (let ((render (layout-render-fn layout)))
-    (shift-origins origin (flatten-once (render (layout-views layout) (layout-opts layout) output dims)))))
+  (if (null? (layout-views layout))
+      '()
+      (let ((render (layout-render-fn layout)))
+        (shift-origins origin (flatten-once (render (layout-views layout) (layout-opts layout) output dims))))))
 
 (define (layout-with layout-fn views opts output dims)
   "Layout the given `views' with `layout-fn'.
 Use this function to compose layouts. A practical example of this is
 given in the `rows' layout, which is defined in terms of the `columns'
-layout."
+layout.
+
+This function only needs to be used in the uppermost composed layout.
+Layouts nested within that can should be placed within the views list
+in their normal form. See `tall` for an example of this."
   (place (apply layout-fn (append (alist->kvs opts) views))
          output '(0 . 0) dims))
 
@@ -140,18 +145,12 @@ and geometry of the view smob."
   (match rv
     (($ rview view output origin dimensions)
      (when (view-view? view)
-       (view-set-output view output)
-       (view-set-geometry view (cons origin dimensions))))
+       (begin
+         (view-set-geometry view (cons origin dimensions))
+         (view-set-output view output))))
     (_ #f)))
 
-(define* (output out #:rest layouts)
-  "Place each layout in `trees' on output `out'."
-  (map (lambda (t)
-         (place t out '(0 . 0) (output-get-resolution out))) layouts))
-
-(define (render! tree)
-  "Render a layout tree. `tree' should be a syntax tree that can be evaluated
-in the scope of the (gram lib render) module."
-  (letrec ((mod (resolve-module '(gram lib render)))
-           (rviews (eval tree mod)))
-    (map render-rview! rviews)))
+(define (render! output zipper)
+  "Render a layout zipper onto an output."
+  (map render-rview!
+       (place (unzip zipper) output '(0 . 0) (output-get-resolution output))))

@@ -1,5 +1,6 @@
 #include <libguile.h>
 #include <wlc/wlc.h>
+#include <wlc/wlc-render.h>
 
 #include "output.h"
 #include "view.h"
@@ -248,6 +249,21 @@ gram_output_set_sleep (SCM _output, SCM _sleep)
   return SCM_ELISP_NIL;
 }
 
+SCM
+gram_output_schedule_render (SCM _output)
+{
+  scm_assert_smob_type (gram_output_tag, _output);
+
+  struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
+  if (output->active)
+  {
+    wlc_output_schedule_render (output->output);
+    printf ("scheduled a render\n");
+    return _output;
+  }
+  return SCM_ELISP_NIL;
+}
+
 void
 init_gram_output_methods (void *ignore)
 {
@@ -259,7 +275,9 @@ init_gram_output_methods (void *ignore)
   scm_c_define_gsubr ("set-views", 2, 0, 0, gram_output_set_views);
   scm_c_define_gsubr ("set-resolution", 2, 0, 0, gram_output_set_resolution);
   scm_c_define_gsubr ("set-sleep", 2, 0, 0, gram_output_set_sleep);
-  scm_c_export ("focus",
+  scm_c_define_gsubr ("schedule-render", 1, 0, 0,
+                      gram_output_schedule_render);
+  scm_c_export ("focus", "schedule-render",
                 /* "get-mask", */ "get-views",
                 /* "get-mutable-views", */
                 "get-name", "get-resolution", "get-sleep",

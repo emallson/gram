@@ -17,6 +17,7 @@ init_gram_view_hooks (void *ignore)
   gram_view_move_to_output_hook_init ();
   gram_view_render_pre_hook_init ();
   gram_view_render_post_hook_init ();
+  gram_view_request_geometry_hook_init ();
 }
 
 static void

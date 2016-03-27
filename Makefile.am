@@ -11,7 +11,8 @@ gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c		\
 	src/hooks/output_render_pre.c src/hooks/output_resolution.c		\
 	src/hooks/pointer_motion.c src/hooks/view_destroyed.c			\
 	src/hooks/view_focus.c src/hooks/view_move_to_output.c			\
-	src/hooks/view_render_post.c src/hooks/view_render_pre.c
+	src/hooks/view_render_post.c src/hooks/view_render_pre.c		\
+	src/hooks/view_request_geometry.c
 gram_SOURCES_H = src/types/keysym.h src/types/view.h				\
 	src/types/output.h src/types/types.h src/hooks/hooks.h			\
 	src/hooks/view_created.h src/hooks/keydown.h					\
@@ -21,7 +22,8 @@ gram_SOURCES_H = src/types/keysym.h src/types/view.h				\
 	src/hooks/output_render_pre.h src/hooks/output_resolution.h		\
 	src/hooks/pointer_motion.h src/hooks/view_destroyed.h			\
 	src/hooks/view_focus.h src/hooks/view_move_to_output.h			\
-	src/hooks/view_render_post.h src/hooks/view_render_pre.h
+	src/hooks/view_render_post.h src/hooks/view_render_pre.h		\
+	src/hooks/view_request_geometry.h
 
 dist_pkgdata_DATA = lib/gram/lib/layout.scm lib/gram/lib/render.scm lib/gram/lib/zipper.scm
 

@@ -40,20 +40,6 @@ keyboard_key (wlc_handle view, uint32_t time,
 static bool
 view_created (wlc_handle view)
 {
-  wlc_view_set_mask (view, wlc_output_get_mask (wlc_view_get_output (view)));
-  wlc_view_bring_to_front (view);
-  wlc_view_focus (view);
-
-  const struct wlc_size *r;
-  /* todo: error checking */
-  r = wlc_output_get_resolution (wlc_view_get_output (view));
-  struct wlc_geometry g = {
-    {0, 0},
-    {r->w, r->h}
-  };
-
-  wlc_view_set_geometry (view, 0, &g);
-
   scm_with_guile (gram_view_created_hook_run, &view);
 
   return true;
@@ -89,6 +75,16 @@ view_move_to_output (wlc_handle view, wlc_handle from, wlc_handle to)
   };
 
   scm_with_guile (gram_view_move_to_output_hook_run, &input);
+}
+
+static void
+view_request_geometry (wlc_handle view, const struct wlc_geometry *geo)
+{
+  struct view_geo s = {
+    view, geo
+  };
+
+  scm_with_guile (gram_view_request_geometry_hook_run, &s);
 }
 
 static void
@@ -160,6 +156,7 @@ pointer_motion (wlc_handle view, uint32_t time, const struct wlc_point *point)
   };
   scm_with_guile (gram_pointer_motion_hook_run, &input);
   /* pointer motion always goes to the target view */
+  wlc_pointer_set_position (point);
   return false;
 }
 
@@ -218,9 +215,16 @@ get_init_file (int argc, char **argv)
   return init_file;
 }
 
+void
+logger (enum wlc_log_type type, const char *str)
+{
+  printf ("%s\n", str);
+}
+
 int
 main (int argc, char **argv)
 {
+  wlc_log_set_handler (logger);
   /* *INDENT-OFF* */
   static struct wlc_interface interface = {
     .output = {
@@ -239,12 +243,12 @@ main (int argc, char **argv)
       .focus = view_focus, // Done - Untested
       .move_to_output = view_move_to_output, // Done - Untested
       /* punting on these for the moment */
-      /* .request = { */
-      /*   .geometry = view_request_geometry, */
+      .request = {
+        .geometry = view_request_geometry,
       /*   .state = view_request_state, */
       /*   .move = view_request_move, */
       /*   .resive = view_request_resize, */
-      /* }, */
+      },
       .render = {
         .pre = view_render_pre, // Done - Untested
         .post = view_render_post // Done - Untested
@@ -258,7 +262,7 @@ main (int argc, char **argv)
          system e.g. (kbd "M-Mouse1"), (kbd "M-ScrollUp") */
       /* .button = pointer_button,  */
       /* .scroll = pointer_scroll, */
-      /* .motion = pointer_motion, // Done - untested */
+      .motion = pointer_motion, // Done - untested
     },
     /* this .touch should also be tied into the key system */
     /* .touch = { */

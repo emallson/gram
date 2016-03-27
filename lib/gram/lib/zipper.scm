@@ -2,11 +2,12 @@
   #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
   #:use-module (oop goops)
-  #:export (zipper? mkzip unzip set swap kill
-                    zipper-node
+  #:export (zipper? mkzip unzip set swap del
+                    zipper zipper-node
                     insert-left insert-right
                     go-left go-right go-up go-down
-                    extract children))
+                    extract children
+                    top find path replay transform))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -50,28 +51,29 @@
   (match z
     (($ zipper node _ _ _)
      (let ((kids (children node)))
-       (if (eq? kids #nil)
-           #f
-           (make-zipper (car kids) '() z (cdr kids)))))
+       (cond
+         ((eq? #nil kids) #f)
+         ((null? kids) (make-zipper #nil '() z '()))
+         (#t (make-zipper (car kids) '() z (cdr kids))))))
     (_ #f)))
 
-(define (insert-right new z)
+(define (insert-right z new)
   (match z
-    (($ zipper #nil '() #f '())
-     (set new z))
+    (($ zipper #nil '() _ '())
+     (set z new))
     (($ zipper node left up right)
      (make-zipper node left up (cons new right)))
     (_ #f)))
 
-(define (insert-left new z)
+(define (insert-left z new)
   (match z
-    (($ zipper #nil '() #f '())
-     (set new z))
+    (($ zipper #nil '() _ '())
+     (set z new))
     (($ zipper node left up right)
      (make-zipper node (cons new left) up right))
     (_ #f)))
 
-(define (set new z)
+(define (set z new)
   (match z
     (($ zipper _ left up right)
      (make-zipper new left up right))
@@ -80,30 +82,59 @@
 (define (swap z f . args)
   (set (apply f (cons (zipper-node z) args)) z))
 
-(define (kill z)
+(define (del z)
   (match z
     (($ zipper node left up (next rest ...))
      (make-zipper next left up rest))
     (($ zipper node (next rest ...) up '())
      (make-zipper next rest up '()))
     (($ zipper node '() up '())
-     (make-zipper #nil '() up '()))
-    (_ #f)))
+     (make-zipper #nil '() up '()))))
 
 (define (unzip z)
   (match z
-    (($ zipper #nil left #f right)
-     (append (reverse left) right))
-    (($ zipper node left #f right)
-     (append (reverse left) (list node) right))
+    (($ zipper node #f #f #f)
+     node)
     (($ zipper _ _ _ _)
      (unzip (go-up z)))
     (_ #f)))
 
 (define (mkzip l)
-  (match l
-    ((first rest ...)
-     (make-zipper first '() #f rest))
-    (()
-     (make-zipper #nil '() #f '()))
-    (_ #f)))
+  (make-zipper l #f #f #f))
+
+(define (top z)
+  (mkzip (unzip z)))
+
+(define (find-dfs x z)
+  (if (or (not z) (equal? (zipper-node z) x))
+      z
+      (let ((down (find-dfs x (go-down z))))
+        (if down
+            down
+            (find-dfs x (go-right z))))))
+
+(define (find x z)
+  (find-dfs x (top z)))
+
+(define (path z)
+  (match z
+    (($ zipper node #f #f #f)
+     '())
+    (($ zipper _ '() _ _)
+     (append (path (go-up z)) (list go-down)))
+    (($ zipper _ (a b ...) _ _)
+     (append (path (go-left z)) (list go-right)))))
+
+(define (replay path z)
+  (if (null? path)
+      z
+      (or (replay (cdr path) ((car path) z)) z)))
+
+(define (transform z x f . rest)
+  "Transforms the given zipper by finding element `dst` with `x' in
+it, calling `(apply f dst rest)`, and then returning to the original
+position."
+  (let ((track (path z))
+        (dst (find x z)))
+    (when dst
+      (replay track (top (apply f dst rest))))))

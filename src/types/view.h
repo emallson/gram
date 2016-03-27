@@ -15,5 +15,6 @@ scm_t_bits gram_view_tag;
 
 void gram_view_deactivate (const wlc_handle view);
 SCM gram_view_scm (const wlc_handle view);
+SCM gram_geometry_scm (const struct wlc_geometry *geo);
 
 void init_gram_view (void);

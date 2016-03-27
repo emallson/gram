@@ -1,6 +1,7 @@
 (use-modules (ice-9 popen)
              (srfi srfi-26)
              (system repl server)
+             (gram lib render-hooks)
              ((gram view)
               #:renamer (symbol-prefix-proc 'view-))
              (gram view hooks)
@@ -14,8 +15,8 @@
 
 (display "Test from guile!\n")
 
-(add-hook! view-created-hook (lambda (v) (display (output-get-views (view-get-output v)))))
-(add-hook! view-created-hook (lambda (v) (display v)))
+;; (add-hook! view-created-hook (lambda (v) (display (output-get-views (view-get-output v)))))
+;; (add-hook! view-created-hook (lambda (v) (display v)))
 
 (define (run cmd)
   "Alias for `open-input-output-pipe'."
@@ -38,3 +39,4 @@
 
 (define-key! default-keymap (kbd "M-x") (cute run "bemenu-run"))
 (define-key! default-keymap (kbd "M-<Space>") (cute run "st"))
+(define-key! default-keymap (kbd "M-b") (cute run "evince"))

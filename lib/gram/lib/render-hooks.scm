@@ -1,0 +1,70 @@
+(define-module (gram lib render-hooks)
+  #:use-module (srfi srfi-26)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 pretty-print)
+  #:use-module (gram lib zipper)
+  #:use-module (gram lib render)
+  #:use-module ((gram lib layout) #:select (tall))
+  #:use-module ((gram view) #:renamer (symbol-prefix-proc 'view-))
+  #:use-module (gram view hooks)
+  #:use-module ((gram output) #:renamer (symbol-prefix-proc 'output-))
+  #:use-module (gram output hooks))
+
+(define %default-layout (tall))
+(define %output-list '())
+(define %current-output #nil)
+(define %current-zipper #nil)
+
+(define (output-created out)
+  (set! %output-list (acons out (go-down (mkzip %default-layout)) %output-list)))
+
+(define (output-focused out focused?)
+  (when focused?
+    (unless (null? %current-output)
+      (assoc-set! %output-list out %current-zipper))
+    (set! %current-output out)
+    (set! %current-zipper (assoc-ref %output-list out))))
+
+(define (zipper-in-layout? zipper)
+  (let ((up (go-up zipper)))
+    (if (zipper? up)
+        (layout? (zipper-node up))
+        #f)))
+
+(define (add-view zipper view)
+  (when (zipper-in-layout? zipper)
+    (let* ((nz (insert-right zipper view))
+           (rz (go-right nz)))
+      (if rz rz nz))))
+
+(define (view-created view)
+  (set! %current-zipper (add-view %current-zipper view))
+  (view-focus view)
+  (view-bring-to-front view)
+  (render! %current-output %current-zipper))
+
+(define (top-level? z)
+  (match z
+    (($ zipper _ #f #f #f) #t)
+    (_ #f)))
+
+(define (view-destroyed view)
+  (set! %current-zipper (transform %current-zipper view del))
+  (when (zipper-node %current-zipper)
+    (view-focus (zipper-node %current-zipper)))
+  (render! %current-output %current-zipper))
+
+(define (view-handle-geometry view geo)
+  (let ((rv (filter (lambda (rv)
+                      (eq? (rview-view rv) view))
+                    (place (unzip %current-zipper) %current-output
+                           '(0 . 0) (output-get-resolution %current-output)))))
+    (unless (null? rv)
+      (view-set-geometry view (cons (rview-origin (car rv))
+                                    (rview-dimensions (car rv)))))))
+
+(add-hook! output-created-hook output-created)
+(add-hook! output-focus-hook output-focused)
+(add-hook! view-created-hook view-created)
+(add-hook! view-request-geometry-hook view-handle-geometry)
+(add-hook! view-destroyed-hook view-destroyed)

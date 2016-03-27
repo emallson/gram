@@ -6,6 +6,7 @@
 #include "view_move_to_output.h"
 #include "view_render_pre.h"
 #include "view_render_post.h"
+#include "view_request_geometry.h"
 
 #include "output_created.h"
 #include "output_destroyed.h"

@@ -145,8 +145,8 @@ gram_view_focus (SCM _view)
   return _view;
 }
 
-static SCM
-gram_geometry_scm (const struct wlc_geometry *geo)
+SCM
+gram_geometry_scm (const struct wlc_geometry * geo)
 {
   /* can't make records from c and a new smob for this is really overkill */
   return scm_cons (scm_cons (scm_from_uint32 (geo->origin.x),
@@ -190,7 +190,12 @@ gram_view_set_geometry (SCM _view, SCM _geo)
         && scm_pair_p (scm_cdr (_geo)))
     {
       const struct wlc_geometry geo = gram_geometry_from_scm (_geo);
-      wlc_view_set_geometry (view->view, 0, &geo);
+      wlc_view_set_geometry (view->view,
+                             WLC_RESIZE_EDGE_LEFT | WLC_RESIZE_EDGE_RIGHT |
+                             WLC_RESIZE_EDGE_TOP | WLC_RESIZE_EDGE_BOTTOM,
+                             &geo);
+      printf ("Set %s to (%d, %d)\n", wlc_view_get_title (view->view),
+              geo.size.w, geo.size.h);
       return SCM_ELISP_NIL;
     }
   }
@@ -336,6 +341,10 @@ gram_view_set_output (SCM _view, SCM _output)
   if (view->active && output->active)
   {
     wlc_view_set_output (view->view, output->output);
+    wlc_view_set_mask (view->view,
+                       wlc_output_get_mask (wlc_view_get_output
+                                            (view->view)));
+    printf ("Set output of %s\n", wlc_view_get_title (view->view));
     return SCM_ELISP_NIL;
   }
   return SCM_BOOL_F;
