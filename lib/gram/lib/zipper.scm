@@ -2,7 +2,7 @@
   #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
   #:use-module (oop goops)
-  #:export (zipper? mkzip unzip swap kill
+  #:export (zipper? mkzip unzip set swap kill
                     zipper-node
                     insert-left insert-right
                     go-left go-right go-up go-down
@@ -58,7 +58,7 @@
 (define (insert-right new z)
   (match z
     (($ zipper #nil '() #f '())
-     (swap new z))
+     (set new z))
     (($ zipper node left up right)
      (make-zipper node left up (cons new right)))
     (_ #f)))
@@ -66,16 +66,19 @@
 (define (insert-left new z)
   (match z
     (($ zipper #nil '() #f '())
-     (swap new z))
+     (set new z))
     (($ zipper node left up right)
      (make-zipper node (cons new left) up right))
     (_ #f)))
 
-(define (swap new z)
+(define (set new z)
   (match z
     (($ zipper _ left up right)
      (make-zipper new left up right))
     (_ #f)))
+
+(define (swap z f . args)
+  (set (apply f (cons (zipper-node z) args)) z))
 
 (define (kill z)
   (match z
