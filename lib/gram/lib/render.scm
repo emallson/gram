@@ -3,20 +3,32 @@
   #:use-module (srfi srfi-26)
   #:use-module (oop goops)
   #:use-module (ice-9 match)
+  #:use-module ((gram lib zipper)
+                #:select (children extract))
   #:use-module ((gram view)
                 #:renamer (symbol-prefix-proc 'view-))
   #:use-module ((gram output)
                 #:renamer (symbol-prefix-proc 'output-))
   #:export     (define-layout place output render!
-                layout-with))
+                layout-with
+                rview?
+                rview-view rview-set-view
+                rview-origin rview-set-origin
+                rview-output rview-set-output
+                rview-dimensions rview-set-dimensions))
+
+(define-generic place)
+(define-method (place (view <view>) (output <output>) (origin <pair>) (dims <pair>))
+  (make-rview view output origin dims))
+
 
 (define-immutable-record-type rview
   (make-rview view output origin dimensions)
   rview?
-  (view rview-view set-rview-view)
-  (output rview-output set-rview-output)
-  (origin rview-origin set-rview-origin)
-  (dimensions rview-dimensions set-rview-dimensions))
+  (view rview-view rview-set-view)
+  (output rview-output rview-set-output)
+  (origin rview-origin rview-set-origin)
+  (dimensions rview-dimensions rview-set-dimensions))
 
 (define-immutable-record-type layout
   (make-layout type render views opts)
@@ -34,9 +46,11 @@
       (format port "(~s~{ ~s~}~{ ~s~})" type (alist->kvs opts) views))
      (_ (error "Unable to display record" rec)))))
 
-(define-generic place)
-(define-method (place (view <view>) (output <output>) (origin <pair>) (dims <pair>))
-  (make-rview view output origin dims))
+(define-method (children (lout <layout>))
+  (layout-views lout))
+
+(define-method (extract (views <list>) (old-layout <layout>))
+  (layout-set-views old-layout views))
 
 (define (remove-keys ls)
   "Remove all keys and key-value pairs from list `ls'."
@@ -105,7 +119,7 @@
 
 (define (shift-origins origin vols)
   (map (lambda (vol)
-         (set-rview-origin vol (cons-add origin (rview-origin vol))))
+         (rview-set-origin vol (cons-add origin (rview-origin vol))))
        vols))
 
 (define-method (place (layout <layout>) (output <output>) (origin <pair>) (dims <pair>))

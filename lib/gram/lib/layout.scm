@@ -26,6 +26,6 @@ their relative sizes."
 weights option."
   (lambda (views opts output dims)
     (map (lambda (rv)
-           (let ((irv (set-rview-origin rv (cons-rev (rview-origin rv)))))
-             (set-rview-dimensions irv (cons-rev (rview-dimensions rv)))))
+           (let ((irv (rview-set-origin rv (cons-rev (rview-origin rv)))))
+             (rview-set-dimensions irv (cons-rev (rview-dimensions rv)))))
          (layout-with columns views opts output (cons-rev dims)))))
