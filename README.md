@@ -27,4 +27,4 @@ Compiling
 
     autoreconf --install
     ./configure
-    make
+    make SCHEME_DIR=./lib
