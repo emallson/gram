@@ -1,4 +1,0 @@
-[submodule "external/ggspec"]
-	path = external/ggspec
-	url = https://github.com/yawaramin/ggspec.git
-	branch = guile-2

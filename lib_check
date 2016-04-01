@@ -5,46 +5,22 @@ Copyright (c) 2016 J David Smith
 
 !#
 
-(add-to-load-path (string-append (dirname (current-filename)) "/" "external/"))
 (add-to-load-path (string-append (dirname (current-filename)) "/" "lib/"))
 (add-to-load-path (string-append (dirname (current-filename)) "/test/support/"))
 (add-to-load-path (string-append (dirname (current-filename)) "/test/mocks/"))
 
-(use-modules
-  (srfi srfi-1)
-  (ggspec lib)
-  (ice-9 ftw)
-  (ice-9 getopt-long)
-  (ice-9 rdelim))
+(use-modules (gram support test-setup)
+             (srfi srfi-64)
+             (ice-9 local-eval)
+             (ice-9 ftw))
 
-(define (run-tree dname opts)
-  "Run all test suites found in files in the given directory and all its
-  subdirectories, and aggregate and return the number of passed and
-  failed tests.
+(test-runner-current (tap-runner))
 
-  Arguments
-    dname: string: the name of the directory to look in for test
-    suites."
-  (define (up-down-skip path stat result) result)
-  (file-system-fold
-    (lambda _ #t)
-    (lambda (path stat result)
-      (define path-length (string-length path))
+(test-begin "lib")
 
-      (if (equal? (substring path (- path-length 4)) ".scm")
-        (results-add result (run-file path opts))
-        result))
-    up-down-skip
-    up-down-skip
-    up-down-skip
-    (lambda (path stat errno result) result)
-    (list 0 0 0) ; Seed value of result: passes fails skips
-    dname))
+(let ((specs (scandir "test/lib" (lambda (fname)
+                                   (string-suffix? "_spec.scm" fname)))))
+  (map-in-order (lambda (spec) (primitive-load (string-append "test/lib/" spec)))
+                specs))
 
-(let ((result (run-tree "test/lib" '())))
-  (output-tap
-   #:final-tally #t
-   #:tally-passed (suite-passed result)
-   #:tally-failed (suite-failed result)
-   #:tally-skipped (suite-skipped result))
-  (exit (suite-failed result)))
+(test-end "lib")
