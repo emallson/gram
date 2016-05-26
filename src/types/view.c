@@ -363,7 +363,7 @@ gram_view_get_app_id (SCM _view)
     }
     else
     {
-      return SCM_BOOL_F;
+      return scm_from_locale_string("");
     }
   }
   return SCM_BOOL_F;
@@ -375,7 +375,28 @@ gram_view_get_class (SCM _view)
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
-    return scm_from_locale_string (wlc_view_get_class (view->view));
+    const char* class = wlc_view_get_class(view->view);
+    if(class != NULL) {
+      return scm_from_locale_string(class);
+    } else {
+      return scm_from_locale_string("");
+    }
+  }
+  return SCM_BOOL_F;
+}
+
+static SCM
+gram_view_get_title (SCM _view)
+{
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  if (view->active)
+  {
+    const char* title = wlc_view_get_title(view->view);
+    if(title != NULL) {
+      return scm_from_locale_string(title);
+    } else {
+      return scm_from_locale_string("");
+    }
   }
   return SCM_BOOL_F;
 }
@@ -383,25 +404,32 @@ gram_view_get_class (SCM _view)
 static SCM
 gram_view_type_scm (uint32_t type)
 {
-  switch (type)
-  {
-  case WLC_BIT_MODAL:
-    return scm_from_locale_symbol ("modal");
-  case WLC_BIT_OVERRIDE_REDIRECT:
-    return scm_from_locale_symbol ("override-redirect");
-  case WLC_BIT_POPUP:
-    return scm_from_locale_string ("popup");
-  case WLC_BIT_SPLASH:
-    return scm_from_locale_string ("splash");
-  case WLC_BIT_UNMANAGED:
-    return scm_from_locale_string ("unmanaged");
+  SCM types = SCM_EOL;
+  if(type & WLC_BIT_MODAL) {
+    types = scm_cons(scm_from_locale_symbol("modal"), types);
   }
-  printf ("Unknown Type: 0x%x\n", type);
-  return SCM_BOOL_F;
+
+  if(type & WLC_BIT_OVERRIDE_REDIRECT) {
+    types = scm_cons(scm_from_locale_symbol("override-redirect"), types);
+  }
+
+  if(type & WLC_BIT_POPUP) {
+    types = scm_cons(scm_from_locale_symbol("popup"), types);
+  }
+
+  if(type & WLC_BIT_SPLASH) {
+    types = scm_cons(scm_from_locale_symbol("splash"), types);
+  }
+
+  if(type & WLC_BIT_UNMANAGED) {
+    types = scm_cons(scm_from_locale_symbol("unmanaged"), types);
+  }
+
+  return types;
 }
 
 static SCM
-gram_view_get_type (SCM _view)
+gram_view_get_types (SCM _view)
 {
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
@@ -429,7 +457,8 @@ init_gram_view_methods (void *data)
   scm_c_define_gsubr ("set-output", 2, 0, 0, gram_view_set_output);
   scm_c_define_gsubr ("get-app-id", 1, 0, 0, gram_view_get_app_id);
   scm_c_define_gsubr ("get-class", 1, 0, 0, gram_view_get_class);
-  scm_c_define_gsubr ("get-type", 1, 0, 0, gram_view_get_type);
+  scm_c_define_gsubr ("get-title", 1, 0, 0, gram_view_get_title);
+  scm_c_define_gsubr ("get-types", 1, 0, 0, gram_view_get_types);
   scm_c_define_gsubr ("view?", 1, 0, 0, gram_view_viewp);
 
   scm_c_export ("close", "bring-to-front", "send-to-back", "focus",
@@ -437,7 +466,7 @@ init_gram_view_methods (void *data)
                 "get-state", "set-state",
                 "get-parent", "set-parent",
                 "get-output", "set-output",
-                "get-app-id", "get-class", "get-type", "view?", NULL);
+                "get-app-id", "get-class", "get-title", "get-types", "view?", NULL);
 }
 
 void

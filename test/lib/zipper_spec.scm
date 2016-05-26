@@ -102,4 +102,37 @@
     (it "should replace the current node with (car left) if it exists but not (car right)"
       (equal? 'a (zipper-node (del (go-right (go-down (mkzip '(a b))))))))
     (it "should remove the element from the zipper entirely"
-      (equal? '() (unzip (del (go-down (mkzip '(a)))))))))
+      (equal? '() (unzip (del (go-down (mkzip '(a))))))))
+
+  (describe "path"
+    (it "should return #f for non-zippers"
+        (not (path 'a)))
+    (it "should return the empty list if at the top of the zipper"
+        (null? (path (mkzip '(a)))))
+    (it "should return the sequence to reach the current zipper position otherwise"
+        (equal? (list go-down go-right go-down)
+                (path (go-down (go-right (go-down (mkzip '(a (b c))))))))))
+
+  (describe "replay"
+    (it "should return z itself for an empty path"
+        (let ((z (mkzip '(a))))
+          (eq? (replay '() z) z)))
+    (it "should return z after the steps in the path have been applied"
+        (let ((z (mkzip '(a (b c)))))
+          (equal? (replay (list go-down go-right go-down) z)
+                  (go-down (go-right (go-down z)))))))
+
+  (describe "transform"
+    (it "should return z itself if z is not a zipper"
+        (eq? 'a (transform 'a 'b identity)))
+    (it "should return z itself if the element is not in z"
+        (let ((z (mkzip '(a (b c)))))
+          (eq? z (transform z 'd del))))
+    (it "should return z with the element transformed by `f dst . rest` otherwise"
+        (let ((z (mkzip '(a (b c))))
+              (zp (mkzip '(a (b)))))
+          (equal? zp (transform z 'c del))))
+    (it "should return a zipper in the same position"
+        (let ((z (go-down (go-right (mkzip '(a (b c))))))
+              (zp (go-down (go-right (mkzip '(a (b)))))))
+          (equal? zp (transform z 'c del))))))

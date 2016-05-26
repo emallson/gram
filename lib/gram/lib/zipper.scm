@@ -109,7 +109,7 @@
   (mkzip (unzip z)))
 
 (define (find-dfs x z)
-  (if (or (not z) (equal? (zipper-node z) x))
+  (if (or (not (zipper? z)) (equal? (zipper-node z) x))
       z
       (let ((down (find-dfs x (go-down z))))
         (if down
@@ -126,7 +126,8 @@
     (($ zipper _ '() _ _)
      (append (path (go-up z)) (list go-down)))
     (($ zipper _ (a b ...) _ _)
-     (append (path (go-left z)) (list go-right)))))
+     (append (path (go-left z)) (list go-right)))
+    (_ #f)))
 
 (define (replay path z)
   (if (null? path)
@@ -139,5 +140,6 @@ it, calling `(apply f dst rest)`, and then returning to the original
 position."
   (let ((track (path z))
         (dst (find x z)))
-    (when dst
-      (replay track (top (apply f dst rest))))))
+    (if dst
+      (replay track (top (apply f dst rest)))
+      z)))

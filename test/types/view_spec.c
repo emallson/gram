@@ -119,7 +119,7 @@ START_TEST (test_view_deactivate_fns)
                     (scm_variable_ref (scm_c_lookup ("get-class")), sa),
                     SCM_BOOL_F);
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("get-type")), sa),
+                    (scm_variable_ref (scm_c_lookup ("get-types")), sa),
                     SCM_BOOL_F);
 }
 

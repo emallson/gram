@@ -3,7 +3,9 @@
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:use-module (gram lib render)
-  #:export     (columns rows tall))
+  #:use-module ((gram view)
+                #:renamer (symbol-prefix-proc 'view-))
+  #:export     (columns rows tall simple))
 
 (define-layout columns ((weights #nil))
   "Lay out windows in columns, with the weights option specifying
@@ -45,3 +47,13 @@ rows next to it."
                                (list main)
                                (list main (apply rows #:weights (assoc-ref opts 'weights) rest)))
                    '() output dims))))
+
+(define-layout simple ()
+  "Lay out windows exactly where they ask to be. If they don't ask to
+be anywhere, place them in the upper-left corner."
+  (lambda (views opts output dims)
+    (map (lambda (v)
+           (match (view-get-geometry v)
+             ((origin . dimensions)
+              (place v output origin dimensions))))
+         views)))
