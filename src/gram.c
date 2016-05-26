@@ -257,7 +257,7 @@ main (int argc, char **argv)
   /* wlc_set_input_created_cb (input_created); */
   /* wlc_set_input_destroyed_cb (input_destroyed); */
 
-  if (!wlc_init2 ())
+  if (!wlc_init ())
     return EXIT_FAILURE;
 
   char *init_file = get_init_file (argc, argv);

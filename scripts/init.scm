@@ -37,6 +37,6 @@
 
 (add-hook! keydown-hook (keymap-hook 'default-keymap))
 
-(define-key! default-keymap (kbd "M-x") (cute run "bemenu-run"))
+(define-key! default-keymap (kbd "M-x") (cute run "dmenu_run"))
 (define-key! default-keymap (kbd "M-<Space>") (cute run "st"))
 (define-key! default-keymap (kbd "M-b") (cute run "evince"))

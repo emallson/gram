@@ -31,11 +31,11 @@ TESTS = keysym_check view_check lib_check
 check_PROGRAMS = keysym_check view_check
 keysym_check_SOURCES = src/types/keysym.c test/types/keysym_spec.c
 keysym_check_CFLAGS=$(AM_CFLAGS) @CHECK_CFLAGS@
-keysym_check_LDFLAGS=$(AM_LDFLAGS) @CHECK_LIBS@
+keysym_check_LDADD=@CHECK_LIBS@
 
 view_check_SOURCES = src/types/view.c src/types/output.c test/types/view_spec.c
 view_check_CFLAGS=$(AM_CFLAGS) @CHECK_CFLAGS@
-view_check_LDFLAGS=$(AM_LDFLAGS) @CHECK_LIBS@
+view_check_LDADD=@CHECK_LIBS@
 
 TESTS_SRCS = $(keysym_check_SOURCES) $(view_check_SOURCES)
 
