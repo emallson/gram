@@ -7,7 +7,8 @@
                     insert-left insert-right
                     go-left go-right go-up go-down
                     extract children
-                    top find path replay transform z->))
+                    top find path replay transform z->
+                    swap-left swap-right))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -153,3 +154,15 @@ position."
        (if zp
            (z-> zp xforms ...)
            z))]))
+
+(define (swap-left z)
+  (match z
+    [($ zipper node (left rest ...) up right)
+     (make-zipper left (cons node rest) up right)]
+    [_ #f]))
+
+(define (swap-right z)
+  (match z
+    [($ zipper node left up (right rest ...))
+     (make-zipper right left up (cons node rest))]
+    [_ #f]))

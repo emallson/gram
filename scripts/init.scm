@@ -43,3 +43,5 @@
 (define-key! default-keymap (kbd "M-b") (cute run "evince"))
 (define-key! default-keymap (kbd "M-n") (cute move-cursor 'right))
 (define-key! default-keymap (kbd "M-e") (cute move-cursor 'left))
+(define-key! default-keymap (kbd "C-M-n") (cute move-window 'right))
+(define-key! default-keymap (kbd "C-M-e") (cute move-window 'left))

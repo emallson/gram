@@ -71,6 +71,9 @@
       (not (insert-left #f 'a)))
     (it "should add an element to the left"
       (equal? '(a b) (unzip (insert-left (go-down (mkzip '(b))) 'a))))
+    (it "should leave the same node focused"
+        (let ((z (go-down (mkzip '(b)))))
+          (equal? (zipper-node z) (zipper-node (insert-left z 'a)))))
     (it "should add an element to the left -- even when nested"
       (equal? '((b) (a c)) (unzip (insert-left (go-down (go-right (go-down (mkzip '((b) (c)))))) 'a)))))
 
@@ -81,6 +84,9 @@
       (equal? '(a) (unzip (insert-right (go-down (mkzip '())) 'a))))
     (it "should add an element to the right"
       (equal? '(b a) (unzip (insert-right (go-down (mkzip '(b))) 'a))))
+    (it "should leave the same node focused"
+        (let ((z (go-down (mkzip '(b)))))
+          (equal? (zipper-node z) (zipper-node (insert-right z 'a)))))
     (it "should add an element to the right -- even when nested"
       (equal? '((b) (c a)) (unzip (insert-right (go-down (go-right (go-down (mkzip '((b) (c)))))) 'a)))))
 
