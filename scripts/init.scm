@@ -1,7 +1,6 @@
 (use-modules (ice-9 popen)
              (srfi srfi-26)
              (system repl server)
-             (gram lib render-hooks)
              ((gram view)
               #:renamer (symbol-prefix-proc 'view-))
              (gram view hooks)
@@ -9,7 +8,9 @@
              (gram keysym hooks)
              ((gram output)
               #:renamer (symbol-prefix-proc 'output-))
-             (gram lib zipper))
+             (gram lib zipper)
+             (gram lib motion)
+             (gram lib render-hooks))
 
 (spawn-server)
 
@@ -40,3 +41,5 @@
 (define-key! default-keymap (kbd "M-x") (cute run "dmenu_run"))
 (define-key! default-keymap (kbd "M-<Space>") (cute run "st"))
 (define-key! default-keymap (kbd "M-b") (cute run "evince"))
+(define-key! default-keymap (kbd "M-n") (cute move-cursor 'right))
+(define-key! default-keymap (kbd "M-e") (cute move-cursor 'left))

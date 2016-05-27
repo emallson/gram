@@ -7,7 +7,7 @@
                     insert-left insert-right
                     go-left go-right go-up go-down
                     extract children
-                    top find path replay transform))
+                    top find path replay transform z->))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -143,3 +143,13 @@ position."
     (if dst
       (replay track (top (apply f dst rest)))
       z)))
+
+(define-syntax z->
+  (syntax-rules ()
+    [(z-> z (xform args ...))
+     (or (xform z args ...) z)]
+    [(z-> z (xform args ...) xforms ...)
+     (let [(zp (xform z args ...))]
+       (if zp
+           (z-> zp xforms ...)
+           z))]))
