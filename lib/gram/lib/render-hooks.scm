@@ -65,8 +65,8 @@ of `transform-workspace!' for more information."
 (define (new-workspace)
   "Create a new, empty workspace with the default tiling and floating layouts."
   (make-workspace
-   (go-down (mkzip %default-layout))
-   (go-down (mkzip %default-floating-layout))
+   (go (mkzip %default-layout) 'down)
+   (go (mkzip %default-floating-layout) 'down)
    should-float?
    'tiling))
 
@@ -81,16 +81,16 @@ of `transform-workspace!' for more information."
     (set! %current-workspace (assoc-ref %output-list out))))
 
 (define (zipper-in-layout? zipper)
-  (let ((up (go-up zipper)))
+  (let ((up (go zipper 'up)))
     (if (zipper? up)
         (layout? (zipper-node up))
         #f)))
 
 (define (add-view zipper view)
   (when (zipper-in-layout? zipper)
-    (let* ((nz (insert-right zipper view))
-           (rz (go-right nz)))
-      (if rz rz nz))))
+    (z-> zipper
+         (insert view 'right)
+         (go 'right))))
 
 (define (view-created view)
   (transform-workspace! (if ((float? %current-workspace) view)

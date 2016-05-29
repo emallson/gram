@@ -4,11 +4,9 @@
   #:use-module (oop goops)
   #:export (zipper? mkzip unzip set swap del
                     zipper zipper-node
-                    insert-left insert-right
-                    go-left go-right go-up go-down
+                    insert go swap
                     extract children
-                    top find path replay transform z->
-                    swap-left swap-right))
+                    top find path replay transform z->))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -125,15 +123,15 @@
     (($ zipper node #f #f #f)
      '())
     (($ zipper _ '() _ _)
-     (append (path (go-up z)) (list go-down)))
+     (append (path (go z 'up)) (list 'down)))
     (($ zipper _ (a b ...) _ _)
-     (append (path (go-left z)) (list go-right)))
+     (append (path (go z 'left)) (list 'right)))
     (_ #f)))
 
 (define (replay path z)
   (if (null? path)
       z
-      (or (replay (cdr path) ((car path) z)) z)))
+      (or (replay (cdr path) (go z (car path))) z)))
 
 (define (transform z x f . rest)
   "Transforms the given zipper by finding element `dst` with `x' in
@@ -166,3 +164,23 @@ position."
     [($ zipper node left up (right rest ...))
      (make-zipper right left up (cons node rest))]
     [_ #f]))
+
+(define (go z dir)
+  (case dir
+    ((left) (go-left z))
+    ((right) (go-right z))
+    ((up) (go-up z))
+    ((down) (go-down z))
+    (else #f)))
+
+(define (swap z dir)
+  (case dir
+    ((left) (swap-left z))
+    ((right) (swap-right z))
+    (else #f)))
+
+(define (insert z new dir)
+  (case dir
+    ((left) (insert-left z new))
+    ((right) (insert-right z new))
+    (else #f)))

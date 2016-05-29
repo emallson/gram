@@ -10,21 +10,18 @@
 (define (move-cursor dir)
   "Move the focus cursor in the specified direction in the current
 layer."
-  (let ((f (function (symbol-append 'go- dir))))
-    (transform-layout! (lambda (z)
-                         (z-> z (f))))
-    (let ((v (current-view)))
-      (when v
-        (view-focus v)))))
+  (transform-layout! (lambda (z)
+                       (z-> z (go dir))))
+  (let ((v (current-view)))
+    (when v
+      (view-focus v))))
 
 (define (move-window dir)
   "Move the window and cursor in the specified direction in the
 current layer."
-  (let ((swap (function (symbol-append 'swap- dir)))
-        (go (function (symbol-append 'go- dir))))
-    (transform-layout! (lambda (z)
-                         (let ((w (zipper-node z)))
-                           (z-> z (swap) (go)))))
-    (let ((v (current-view)))
-      (when v
-        (view-focus v)))))
+  (transform-layout! (lambda (z)
+                       (let ((w (zipper-node z)))
+                         (z-> z (swap dir) (go dir)))))
+  (let ((v (current-view)))
+    (when v
+      (view-focus v))))
