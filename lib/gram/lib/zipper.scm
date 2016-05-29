@@ -4,9 +4,9 @@
   #:use-module (oop goops)
   #:export (zipper? mkzip unzip set swap del
                     zipper zipper-node
-                    insert go swap
+                    insert go rotate
                     extract children
-                    top find path replay transform z->))
+                    top find path replay transform z-> zmap zfilter))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -46,6 +46,9 @@
 (define-method (children (lst <list>)) lst)
 (define-method (children atom) #nil)
 
+(define (leaf? z)
+  (null? (children z)))
+
 (define (go-down z)
   (match z
     (($ zipper node _ _ _)
@@ -72,6 +75,37 @@
      (make-zipper node (cons new left) up right))
     (_ #f)))
 
+(define (rotate-left z)
+  (match z
+    [($ zipper node (left rest ...) up right)
+     (make-zipper left (cons node rest) up right)]
+    [_ #f]))
+
+(define (rotate-right z)
+  (match z
+    [($ zipper node left up (right rest ...))
+     (make-zipper right left up (cons node rest))]
+    [_ #f]))
+
+(define (go z dir)
+  (case dir
+    ((left) (go-left z))
+    ((right) (go-right z))
+    ((up) (go-up z))
+    ((down) (go-down z))
+    (else #f)))
+
+(define (rotate z dir)
+  (case dir
+    ((left) (rotate-left z))
+    ((right) (rotate-right z))
+    (else #f)))
+
+(define (insert z new dir)
+  (case dir
+    ((left) (insert-left z new))
+    ((right) (insert-right z new))
+    (else #f)))
 (define (set z new)
   (match z
     (($ zipper _ left up right)
@@ -79,7 +113,7 @@
     (_ #f)))
 
 (define (swap z f . args)
-  (set (apply f (cons (zipper-node z) args)) z))
+  (set z (apply f (zipper-node z) args)))
 
 (define (del z)
   (match z
@@ -107,16 +141,16 @@
 (define (top z)
   (mkzip (unzip z)))
 
-(define (find-dfs x z)
-  (if (or (not (zipper? z)) (equal? (zipper-node z) x))
+(define (find-dfs p? z)
+  (if (or (not (zipper? z)) (p? (zipper-node z)))
       z
-      (let ((down (find-dfs x (go-down z))))
+      (let ((down (find-dfs p? (go z 'down))))
         (if down
             down
-            (find-dfs x (go-right z))))))
+            (find-dfs p? (go z 'right))))))
 
-(define (find x z)
-  (find-dfs x (top z)))
+(define (find z p?)
+  (find-dfs p? (top z)))
 
 (define (path z)
   (match z
@@ -128,20 +162,33 @@
      (append (path (go z 'left)) (list 'right)))
     (_ #f)))
 
-(define (replay path z)
+(define (replay z path)
   (if (null? path)
       z
-      (or (replay (cdr path) (go z (car path))) z)))
+      (or (replay (go z (car path)) (cdr path)) z)))
 
-(define (transform z x f . rest)
-  "Transforms the given zipper by finding element `dst` with `x' in
-it, calling `(apply f dst rest)`, and then returning to the original
-position."
+(define (transform z p? f . rest)
+  "Transforms the given zipper by finding the first element `dst`
+satisfying predicate `p?', calling `(apply f dst rest)`, and then
+returning to the original position.
+
+If `p?' does not satisfy `procedure?' then it is instead compared with
+`equal?'."
   (let ((track (path z))
-        (dst (find x z)))
+        (dst (find z (if (procedure? p?)
+                       p?
+                       (lambda (x) (equal? p? x))))))
     (if dst
-      (replay track (top (apply f dst rest)))
+      (replay (top (apply f dst rest)) track)
       z)))
+
+(define (find-dfs p? z)
+  (if (or (not (zipper? z)) (p? (zipper-node z)))
+      z
+      (let ((down (find-dfs p? (go z 'down))))
+        (if down
+            down
+            (find-dfs p? (go z 'right))))))
 
 (define-syntax z->
   (syntax-rules ()
@@ -153,34 +200,39 @@ position."
            (z-> zp xforms ...)
            z))]))
 
-(define (swap-left z)
-  (match z
-    [($ zipper node (left rest ...) up right)
-     (make-zipper left (cons node rest) up right)]
-    [_ #f]))
+(define (-zmap z f)
+  (if (zipper? z)
+      (let* ((down (z-> z
+                        (go 'down)
+                        (-zmap f)
+                        (go 'up))))
+        (z-> down
+             (go 'right)
+             (-zmap f)))
+      #f))
 
-(define (swap-right z)
-  (match z
-    [($ zipper node left up (right rest ...))
-     (make-zipper right left up (cons node rest))]
-    [_ #f]))
+(define (zmap z f . rest)
+  "Applies f x rest to each leaf node of zipper `z' in depth-first
+order."
+  (let ((track (path z))
+        (result (-zmap z (lambda (x) (if (leaf? x) (apply f x rest) x)))))
+    (replay (top result) track)))
 
-(define (go z dir)
-  (case dir
-    ((left) (go-left z))
-    ((right) (go-right z))
-    ((up) (go-up z))
-    ((down) (go-down z))
-    (else #f)))
+(define (-zfilter z p?)
+  (if (zipper? z)
+      (let ((zp (if (p? (zipper-node z)) z (del z))))
+        (let* ((next* (z-> zp (go 'down) (-zfilter p?) (go 'up)))
+               (next (if (null? (zipper-node next*))
+                         (del next*)
+                         next*)))
+          (z-> next  (go 'right) (-zfilter p?))))
+      #f))
 
-(define (swap z dir)
-  (case dir
-    ((left) (swap-left z))
-    ((right) (swap-right z))
-    (else #f)))
-
-(define (insert z new dir)
-  (case dir
-    ((left) (insert-left z new))
-    ((right) (insert-right z new))
-    (else #f)))
+(define (zfilter z p? . rest)
+  "Returns the zipper containing the leaf elements of `z' which
+satisfy (apply p? x rest)."
+  (let ((track (path z))
+        (result (-zfilter z (lambda (x)
+                              (or (not (leaf? x))
+                                  (apply p? x rest))))))
+    (replay (top result) track)))

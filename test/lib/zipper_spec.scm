@@ -162,10 +162,10 @@
   (describe "replay"
     (it "should return z itself for an empty path"
         (let ((z (mkzip '(a))))
-          (eq? (replay '() z) z)))
+          (eq? (replay z '()) z)))
     (it "should return z after the steps in the path have been applied"
         (let ((z (mkzip '(a (b c)))))
-          (equal? (replay (list 'down 'right 'down) z)
+          (equal? (replay z (list 'down 'right 'down))
                   (z-> z (go 'down) (go 'right) (go 'down))))))
 
   (describe "transform"

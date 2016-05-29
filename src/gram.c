@@ -48,9 +48,9 @@ view_created (wlc_handle view)
 static void
 view_destroyed (wlc_handle view)
 {
-  /* run the hook before freeing -- Unsure on correctness -- Investigate */
-  scm_with_guile (gram_view_destroyed_hook_run, &view);
+  /* free the view and then run the hooks */
   gram_view_deactivate (view);
+  scm_with_guile (gram_view_destroyed_hook_run, NULL);
 }
 
 static void

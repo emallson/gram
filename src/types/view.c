@@ -67,6 +67,15 @@ gram_view_viewp (SCM maybe_view)
   return SCM_BOOL_F;
 }
 
+SCM
+gram_view_activep (SCM _view) {
+  if(SCM_SMOB_PREDICATE(gram_view_tag, _view)) {
+    struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+    return view->active ? SCM_BOOL_T : SCM_BOOL_F;
+  }
+  return SCM_BOOL_F;
+}
+
 void
 gram_view_deactivate (const wlc_handle view)
 {
@@ -75,6 +84,7 @@ gram_view_deactivate (const wlc_handle view)
   {
     if (view_table[i] && view_table[i]->view == view)
     {
+      printf("View %d deactivated\n", i);
       view_table[i]->active = false;
     }
   }
@@ -102,6 +112,7 @@ gram_view_free (SCM _view)
 static SCM
 gram_view_close (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -109,12 +120,13 @@ gram_view_close (SCM _view)
   }
 
   view->active = false;
-  return _view;
+  return SCM_BOOL_T;
 }
 
 static SCM
 gram_view_bring_to_front (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -126,6 +138,7 @@ gram_view_bring_to_front (SCM _view)
 static SCM
 gram_view_send_to_back (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -137,6 +150,7 @@ gram_view_send_to_back (SCM _view)
 static SCM
 gram_view_focus (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -172,6 +186,7 @@ gram_geometry_from_scm (SCM _geo)
 static SCM
 gram_view_get_geometry (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -183,6 +198,7 @@ gram_view_get_geometry (SCM _view)
 static SCM
 gram_view_set_geometry (SCM _view, SCM _geo)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -190,13 +206,21 @@ gram_view_set_geometry (SCM _view, SCM _geo)
         && scm_pair_p (scm_cdr (_geo)))
     {
       const struct wlc_geometry geo = gram_geometry_from_scm (_geo);
+      const struct wlc_geometry curr = *wlc_view_get_geometry(view->view);
+      if(curr.origin.x == geo.origin.x &&
+        curr.origin.y == geo.origin.y &&
+        curr.size.w == geo.size.w &&
+         curr.size.h == geo.size.h) {
+        /* no change, do nothing */
+        return _view;
+      }
       wlc_view_set_geometry (view->view,
                              WLC_RESIZE_EDGE_LEFT | WLC_RESIZE_EDGE_RIGHT |
                              WLC_RESIZE_EDGE_TOP | WLC_RESIZE_EDGE_BOTTOM,
                              &geo);
       printf ("Set %s to (%d, %d)\n", wlc_view_get_title (view->view),
               geo.size.w, geo.size.h);
-      return SCM_ELISP_NIL;
+      return _view;
     }
   }
   return SCM_BOOL_F;
@@ -252,6 +276,7 @@ gram_view_state_from_scm (SCM _state)
 static SCM
 gram_view_get_state (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -264,6 +289,8 @@ gram_view_get_state (SCM _view)
 static SCM
 gram_view_set_state (SCM _view, SCM _state, SCM _toggle)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
+
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -321,6 +348,7 @@ gram_view_set_parent (SCM _view, SCM _parent)
 static SCM
 gram_view_get_output (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -335,17 +363,23 @@ gram_view_get_output (SCM _view)
 static SCM
 gram_view_set_output (SCM _view, SCM _output)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
+  scm_assert_smob_type (gram_output_tag, _output);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
 
   if (view->active && output->active)
   {
-    wlc_view_set_output (view->view, output->output);
     wlc_view_set_mask (view->view,
                        wlc_output_get_mask (wlc_view_get_output
                                             (view->view)));
+    wlc_handle current_output = wlc_view_get_output(view->view);
+    if(current_output == output->output) {
+      return SCM_BOOL_T;
+    }
+    wlc_view_set_output (view->view, output->output);
     printf ("Set output of %s\n", wlc_view_get_title (view->view));
-    return SCM_ELISP_NIL;
+    return SCM_BOOL_T;
   }
   return SCM_BOOL_F;
 }
@@ -353,6 +387,7 @@ gram_view_set_output (SCM _view, SCM _output)
 static SCM
 gram_view_get_app_id (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -372,6 +407,7 @@ gram_view_get_app_id (SCM _view)
 static SCM
 gram_view_get_class (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -388,6 +424,7 @@ gram_view_get_class (SCM _view)
 static SCM
 gram_view_get_title (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -431,6 +468,7 @@ gram_view_type_scm (uint32_t type)
 static SCM
 gram_view_get_types (SCM _view)
 {
+  scm_assert_smob_type (gram_view_tag, _view);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
@@ -460,13 +498,14 @@ init_gram_view_methods (void *data)
   scm_c_define_gsubr ("get-title", 1, 0, 0, gram_view_get_title);
   scm_c_define_gsubr ("get-types", 1, 0, 0, gram_view_get_types);
   scm_c_define_gsubr ("view?", 1, 0, 0, gram_view_viewp);
+  scm_c_define_gsubr ("active?", 1, 0, 0, gram_view_activep);
 
   scm_c_export ("close", "bring-to-front", "send-to-back", "focus",
                 "get-geometry", "set-geometry",
                 "get-state", "set-state",
                 "get-parent", "set-parent",
                 "get-output", "set-output",
-                "get-app-id", "get-class", "get-title", "get-types", "view?", NULL);
+                "get-app-id", "get-class", "get-title", "get-types", "view?", "active?", NULL);
 }
 
 void

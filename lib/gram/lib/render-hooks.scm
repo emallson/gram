@@ -42,7 +42,10 @@ layout zipper."
     ((floating) (set-floating-layout! %current-workspace
                                       (f (floating-layout %current-workspace))))
     ((tiling) (set-tiling-layout! %current-workspace
-                                  (f (tiling-layout %current-workspace)))))
+                                  (f (tiling-layout %current-workspace))))
+    ((both) (begin
+              (transform-workspace! 'tiling f)
+              (transform-workspace! 'floating f))))
   (re-render!))
 
 (define (transform-layout! f)
@@ -106,13 +109,14 @@ of `transform-workspace!' for more information."
     (($ zipper _ #f #f #f) #t)
     (_ #f)))
 
-(define (view-destroyed view)
-  (set-tiling-layout! %current-workspace (transform (tiling-layout %current-workspace) view del))
-  (set-floating-layout! %current-workspace (transform (floating-layout %current-workspace) view del))
+(define (view-destroyed)
+  (transform-workspace! 'both (lambda (z) (zfilter z view-active?)))
+  (when (current-view)
+      (view-focus (current-view)))
   (re-render!))
 
 (define (view-handle-geometry view geo)
-  (let ((rv (filter (lambda (rv)
+  (let* ((rv (filter (lambda (rv)
                       (eq? (rview-view rv) view))
                     (append
                      (place (unzip (tiling-layout %current-workspace))
@@ -120,10 +124,10 @@ of `transform-workspace!' for more information."
                             '(0 . 0) (output-get-resolution %current-output))
                      (place (unzip (floating-layout %current-workspace))
                             %current-output
-                            '(0 . 0) (output-get-resolution %current-output))))))
-    (unless (null? rv)
-      (view-set-geometry view (cons (rview-origin (car rv))
-                                    (rview-dimensions (car rv)))))))
+                            '(0 . 0) (output-get-resolution %current-output)))))
+        (new-geo (cons (rview-origin (car rv))
+                       (rview-dimensions (car rv)))))
+    (view-set-geometry view new-geo)))
 
 (add-hook! output-created-hook output-created)
 (add-hook! output-focus-hook output-focused)

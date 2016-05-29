@@ -8,6 +8,8 @@ struct gram_output
   bool active;
 };
 
+scm_t_bits gram_output_tag;
+
 /* 32 outputs should be enough for everyone, right? RIGHT? */
 #define GRAM_MAX_OUTPUTS 32
 

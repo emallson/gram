@@ -21,7 +21,4 @@ layer."
 current layer."
   (transform-layout! (lambda (z)
                        (let ((w (zipper-node z)))
-                         (z-> z (swap dir) (go dir)))))
-  (let ((v (current-view)))
-    (when v
-      (view-focus v))))
+                         (z-> z (rotate dir) (go dir))))))
