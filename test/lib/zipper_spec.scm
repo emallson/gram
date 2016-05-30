@@ -185,4 +185,24 @@
             (zp (z-> (mkzip '(a (b)))
                      (go 'down)
                      (go 'right))))
-          (equal? zp (transform z 'c del))))))
+          (equal? zp (transform z 'c del)))))
+
+  (describe "zmap"
+    (it "should map the leaf nodes of the zipper"
+      (let ((z (mkzip (list 1 (list 2 3) 4)))
+            (zp (mkzip (list 2 (list 3 4) 5))))
+        (equal? zp (zmap z 1+))))
+    (it "should map from the top"
+      (let ((z (mkzip (list 1 (list 2 3) 4)))
+            (zp (mkzip (list 2 (list 3 4) 5))))
+        (equal? zp (top (zmap (z-> z (go 'down) (go 'right) (go 'down)) 1+))))))
+
+  (describe "zfilter"
+    (it "should filter the leaf nodes of the zipper"
+      (let ((z (mkzip (list 1 'a (list 'b 2) 3 'c)))
+            (zp (mkzip '(a (b) c))))
+        (equal? zp (zfilter z symbol?))))
+    (it "should filter from the top"
+      (let ((z (mkzip (list 1 'a (list 'b 2) 3 'c)))
+            (zp (mkzip '(a (b) c))))
+        (equal? zp (top (zfilter (z-> z (go 'down) (go 'right) (go 'down)) symbol?)))))))

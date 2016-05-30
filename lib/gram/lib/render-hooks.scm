@@ -15,12 +15,14 @@
 (define %default-layout (tall))
 (define %default-floating-layout (simple))
 (define %output-list '())
+(define %workspace-list '())
 (define %current-output #nil)
 (define %current-workspace #nil)
 
 (define-record-type workspace
-  (make-workspace tiling-layout floating-layout float? focused)
+  (make-workspace name tiling-layout floating-layout float? focused)
   workspace?
+  (name workspace-name set-workspace-name!)
   (focused focused-layout set-focused-layout!)
   (tiling-layout tiling-layout set-tiling-layout!)
   (floating-layout floating-layout set-floating-layout!)
@@ -65,23 +67,59 @@ of `transform-workspace!' for more information."
   (let ((types (view-get-types view)))
     (not (null? types))))
 
-(define (new-workspace)
-  "Create a new, empty workspace with the default tiling and floating layouts."
-  (make-workspace
-   (go (mkzip %default-layout) 'down)
-   (go (mkzip %default-floating-layout) 'down)
-   should-float?
-   'tiling))
+(define (get-workspace name)
+  "Get a workspace from the alist if it exists. If not, create it with
+the default tiling and floating layouts."
+  (if (assoc name %workspace-list)
+      (assoc-ref %workspace-list name)
+      (let ((ws (make-workspace
+                 name
+                 (go (mkzip %default-layout) 'down)
+                 (go (mkzip %default-floating-layout) 'down)
+                 should-float?
+                 'tiling)))
+        (set! %workspace-list (acons name ws %workspace-list))
+        ws)))
+
+(define (get-first-unused-workspace out)
+  "Returns the first workspace that is not used by any other output.
+If none exists, one is created. If the given output has a workspace
+already, it is returned."
+  (if (assoc out %output-list)
+      (assoc-ref %workspace-list (assoc-ref %output-list out))
+      (let* ((names (map car %workspace-list))
+             (used (map cadr %output-list))
+             (unused (filter (lambda (s) (not (member s used))) names)))
+        (if (null? unused)
+            (get-workspace (string-append "default-" (output-get-name out)))
+            (get-workspace (car unused))))))
 
 (define (output-created out)
-  (set! %output-list (acons out (new-workspace) %output-list)))
+  (set! %output-list (acons out (workspace-name (get-first-unused-workspace out)) %output-list)))
 
 (define (output-focused out focused?)
   (when focused?
     (unless (null? %current-output)
-      (assoc-set! %output-list out %current-workspace))
+      (assoc-set! %output-list out (workspace-name %current-workspace)))
     (set! %current-output out)
-    (set! %current-workspace (assoc-ref %output-list out))))
+    (set! %current-workspace (get-workspace (assoc-ref %output-list out)))))
+
+(define (hide-workspace! ws)
+  "Hides all of the views in the workspace `ws'."
+  (transform-workspace! 'both (lambda (z) (zmap z (lambda (v) (if (view-view? v) (view-hide v) v))))))
+
+(define (show-workspace! ws out)
+  "Shows all of the views in workspace `ws' on the output `out'."
+  (transform-workspace! 'both (lambda (z) (zmap z (lambda (v) (if (view-view? v) (view-show v out) v))))))
+
+(define (switch-to-workspace name)
+  "Switch to the workspace named `name'. If it does not exist, it is
+created."
+  (let ((ws (get-workspace name)))
+    (hide-workspace! %current-workspace)
+    (set! %current-workspace ws)
+    (show-workspace! %current-workspace %current-output)
+    (re-render!)))
 
 (define (zipper-in-layout? zipper)
   (let ((up (go zipper 'up)))
@@ -99,6 +137,7 @@ of `transform-workspace!' for more information."
   (transform-workspace! (if ((float? %current-workspace) view)
                             'floating 'tiling)
                         (cute add-view <> view))
+  (view-show view %current-output)
   (view-focus view)
   (view-bring-to-front view)
   (render! %current-output (tiling-layout %current-workspace))

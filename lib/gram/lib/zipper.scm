@@ -203,6 +203,7 @@ If `p?' does not satisfy `procedure?' then it is instead compared with
 (define (-zmap z f)
   (if (zipper? z)
       (let* ((down (z-> z
+                        (swap f)
                         (go 'down)
                         (-zmap f)
                         (go 'up))))
@@ -215,7 +216,7 @@ If `p?' does not satisfy `procedure?' then it is instead compared with
   "Applies f x rest to each leaf node of zipper `z' in depth-first
 order."
   (let ((track (path z))
-        (result (-zmap z (lambda (x) (if (leaf? x) (apply f x rest) x)))))
+        (result (-zmap (top z) (lambda (x) (if (leaf? x) (apply f x rest) x)))))
     (replay (top result) track)))
 
 (define (-zfilter z p?)
@@ -232,7 +233,7 @@ order."
   "Returns the zipper containing the leaf elements of `z' which
 satisfy (apply p? x rest)."
   (let ((track (path z))
-        (result (-zfilter z (lambda (x)
-                              (or (not (leaf? x))
-                                  (apply p? x rest))))))
+        (result (-zfilter (top z) (lambda (x)
+                                 (or (not (leaf? x))
+                                     (apply p? x rest))))))
     (replay (top result) track)))

@@ -178,7 +178,7 @@ gram_output_set_views (SCM _output, SCM _views)
 {
   scm_assert_smob_type (gram_output_tag, _output);
   if (!scm_list_p (_views))
-    return SCM_ELISP_NIL;
+    return SCM_BOOL_F;
 
   struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
   if (output->active)
@@ -210,7 +210,7 @@ gram_output_set_views (SCM _output, SCM _views)
     free (views);
     return _output;
   }
-  return SCM_ELISP_NIL;
+  return SCM_BOOL_F;
 }
 
 SCM
