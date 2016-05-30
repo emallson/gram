@@ -3,14 +3,20 @@ Gram
 
 Gram is a highly experimental Wayland window manager.
 
-*Current Status:* Bare-bones. Basic column, row, and tall
-[layouts](lib/gram/lib/layout.scm) implemented with lifecycle
-management for views, but no:
+*Current Status:* Nearly all basic functionality is present. The major missing piece is completion of the floating layer / mouse support.
 
-- Window Motion (easy)
-- Floating Layer (harder)
-- Mouse support (hard)
-- Workspaces (???)
+*Completed Functionality*:
+
+- Workspaces
+- Nestable Layouts
+- Intra-layout window & cursor motion
+- Rudimentary floating layer (appropriate windows (eg `dmenu`) are floated, but there is presently no way to move/resize/focus them if you move focus away from them)
+
+*To-Be-Done*:
+
+- Inter-layout cursor motion (issue [#3](issues/3), issue [#9](issues/9))
+- Complete floating layer / mouse support (issues [#3](issues/3), [#4](issues/4))
+- Public functions to insert and rearrange nested layouts (issue [#9](issues/9))
 
 Dependencies
 ============
