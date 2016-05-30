@@ -14,9 +14,9 @@ Gram is a highly experimental Wayland window manager.
 
 *To-Be-Done*:
 
-- Inter-layout cursor motion (issue [#3](issues/3), issue [#9](issues/9))
-- Complete floating layer / mouse support (issues [#3](issues/3), [#4](issues/4))
-- Public functions to insert and rearrange nested layouts (issue [#9](issues/9))
+- Inter-layout cursor motion (issue [#3](../../issues/3), issue [#9](../../issues/9))
+- Complete floating layer / mouse support (issues [#3](../../issues/3), [#4](../../issues/4))
+- Public functions to insert and rearrange nested layouts (issue [#9](../../issues/9))
 
 Dependencies
 ============
