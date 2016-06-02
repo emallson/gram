@@ -152,5 +152,8 @@ and geometry of the view smob."
 
 (define (render! output zipper)
   "Render a layout zipper onto an output."
+  (display "render! called on ")
+  (display (unzip zipper))
+  (newline)
   (map render-rview!
        (place (unzip zipper) output '(0 . 0) (output-get-resolution output))))

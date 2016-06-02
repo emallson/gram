@@ -10,13 +10,17 @@ static SCM smob_table[GRAM_MAX_VIEWS];
 static int
 gram_view_print (SCM view_smob, SCM port, scm_print_state * pstate)
 {
+  scm_assert_smob_type(gram_view_tag, view_smob);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (view_smob);
+  if(view->active) {
+    const char* title = wlc_view_get_title (view->view);
+    scm_puts ("#<view ", port);
+    scm_puts (title ? title : "UNTITLED", port);
+    scm_puts (">", port);
 
-  scm_puts ("#<view ", port);
-  scm_puts (wlc_view_get_title (view->view), port);
-  scm_puts (">", port);
-
-  return 1;
+    return 1;
+  }
+  return 0;
 }
 
 SCM
@@ -215,8 +219,8 @@ gram_view_set_geometry (SCM _view, SCM _geo)
         return _view;
       }
       wlc_view_set_geometry (view->view, 0, &geo);
-      printf ("Set %s to (%d, %d)\n", wlc_view_get_title (view->view),
-              geo.size.w, geo.size.h);
+      /* printf ("Set %s to (%d, %d)\n", wlc_view_get_title (view->view), */
+      /*         geo.size.w, geo.size.h); */
       return _view;
     }
   }
@@ -368,7 +372,7 @@ gram_view_set_output (SCM _view, SCM _output)
   if (view->active && output->active)
   {
     wlc_view_set_output (view->view, output->output);
-    printf ("Set output of %s\n", wlc_view_get_title (view->view));
+    /* printf ("Set output of %s\n", wlc_view_get_title (view->view)); */
     return SCM_BOOL_T;
   }
   return SCM_BOOL_F;

@@ -44,17 +44,17 @@
 
 (define-generic children)
 (define-method (children (lst <list>)) lst)
-(define-method (children atom) #nil)
+(define-method (children atom) #f)
 
 (define (leaf? z)
-  (null? (children z)))
+  (eq? #f (children z)))
 
 (define (go-down z)
   (match z
     (($ zipper node _ _ _)
      (let ((kids (children node)))
        (cond
-         ((eq? #nil kids) #f)
+         ((eq? #f kids) #f)
          ((null? kids) (make-zipper #nil '() z '()))
          (#t (make-zipper (car kids) '() z (cdr kids))))))
     (_ #f)))
@@ -234,6 +234,6 @@ order."
 satisfy (apply p? x rest)."
   (let ((track (path z))
         (result (-zfilter (top z) (lambda (x)
-                                 (or (not (leaf? x))
-                                     (apply p? x rest))))))
+                                    (or (not (leaf? x))
+                                        (apply p? x rest))))))
     (replay (top result) track)))

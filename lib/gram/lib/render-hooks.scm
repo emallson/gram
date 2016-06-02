@@ -29,6 +29,7 @@
   (float? float? set-float!))
 
 (define (re-render!)
+  (display "re-render! called") (newline)
   (render! %current-output (tiling-layout %current-workspace))
   (render! %current-output (floating-layout %current-workspace)))
 
@@ -47,8 +48,7 @@ layout zipper."
                                   (f (tiling-layout %current-workspace))))
     ((both) (begin
               (transform-workspace! 'tiling f)
-              (transform-workspace! 'floating f))))
-  (re-render!))
+              (transform-workspace! 'floating f)))))
 
 (define (transform-layout! f)
   "Transform the currently focused layout by `f'. See the definition
@@ -140,8 +140,7 @@ created."
   (view-show view %current-output)
   (view-focus view)
   (view-bring-to-front view)
-  (render! %current-output (tiling-layout %current-workspace))
-  (render! %current-output (floating-layout %current-workspace)))
+  (re-render!))
 
 (define (top-level? z)
   (match z
@@ -150,9 +149,9 @@ created."
 
 (define (view-destroyed)
   (transform-workspace! 'both (lambda (z) (zfilter z view-active?)))
+  (re-render!)
   (when (current-view)
-      (view-focus (current-view)))
-  (re-render!))
+      (view-focus (current-view))))
 
 (define (view-handle-geometry view geo)
   (let* ((rv (filter (lambda (rv)
