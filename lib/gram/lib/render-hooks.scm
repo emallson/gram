@@ -53,7 +53,8 @@ layout zipper."
 (define (transform-layout! f)
   "Transform the currently focused layout by `f'. See the definition
 of `transform-workspace!' for more information."
-  (transform-workspace! (focused-layout %current-workspace) f))
+  (transform-workspace! (focused-layout %current-workspace) f)
+  (re-render!))
 
 (define (current-view)
   (let ((vol (case (focused-layout %current-workspace)
@@ -149,23 +150,11 @@ created."
 
 (define (view-destroyed)
   (transform-workspace! 'both (lambda (z) (zfilter z view-active?)))
-  (re-render!)
   (when (current-view)
       (view-focus (current-view))))
 
 (define (view-handle-geometry view geo)
-  (let* ((rv (filter (lambda (rv)
-                      (eq? (rview-view rv) view))
-                    (append
-                     (place (unzip (tiling-layout %current-workspace))
-                            %current-output
-                            '(0 . 0) (output-get-resolution %current-output))
-                     (place (unzip (floating-layout %current-workspace))
-                            %current-output
-                            '(0 . 0) (output-get-resolution %current-output)))))
-        (new-geo (cons (rview-origin (car rv))
-                       (rview-dimensions (car rv)))))
-    (view-set-geometry view new-geo)))
+  (format #t "View ~a requested geometry ~a\n" view geo))
 
 (add-hook! output-created-hook output-created)
 (add-hook! output-focus-hook output-focused)
