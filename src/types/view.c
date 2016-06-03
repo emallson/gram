@@ -10,10 +10,11 @@ static SCM smob_table[GRAM_MAX_VIEWS];
 static int
 gram_view_print (SCM view_smob, SCM port, scm_print_state * pstate)
 {
-  scm_assert_smob_type(gram_view_tag, view_smob);
+  scm_assert_smob_type (gram_view_tag, view_smob);
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (view_smob);
-  if(view->active) {
-    const char* title = wlc_view_get_title (view->view);
+  if (view->active)
+  {
+    const char *title = wlc_view_get_title (view->view);
     scm_puts ("#<view ", port);
     scm_puts (title ? title : "UNTITLED", port);
     scm_puts (">", port);
@@ -72,8 +73,10 @@ gram_view_viewp (SCM maybe_view)
 }
 
 SCM
-gram_view_activep (SCM _view) {
-  if(SCM_SMOB_PREDICATE(gram_view_tag, _view)) {
+gram_view_activep (SCM _view)
+{
+  if (SCM_SMOB_PREDICATE (gram_view_tag, _view))
+  {
     struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
     return view->active ? SCM_BOOL_T : SCM_BOOL_F;
   }
@@ -88,7 +91,7 @@ gram_view_deactivate (const wlc_handle view)
   {
     if (view_table[i] && view_table[i]->view == view)
     {
-      printf("View %d deactivated\n", i);
+      printf ("View %d deactivated\n", i);
       view_table[i]->active = false;
     }
   }
@@ -210,11 +213,11 @@ gram_view_set_geometry (SCM _view, SCM _geo)
         && scm_pair_p (scm_cdr (_geo)))
     {
       const struct wlc_geometry geo = gram_geometry_from_scm (_geo);
-      const struct wlc_geometry curr = *wlc_view_get_geometry(view->view);
-      if(curr.origin.x == geo.origin.x &&
-        curr.origin.y == geo.origin.y &&
-        curr.size.w == geo.size.w &&
-         curr.size.h == geo.size.h) {
+      const struct wlc_geometry curr = *wlc_view_get_geometry (view->view);
+      if (curr.origin.x == geo.origin.x &&
+          curr.origin.y == geo.origin.y &&
+          curr.size.w == geo.size.w && curr.size.h == geo.size.h)
+      {
         /* no change, do nothing */
         return _view;
       }
@@ -392,7 +395,7 @@ gram_view_get_app_id (SCM _view)
     }
     else
     {
-      return scm_from_locale_string("");
+      return scm_from_locale_string ("");
     }
   }
   return SCM_BOOL_F;
@@ -405,11 +408,14 @@ gram_view_get_class (SCM _view)
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
-    const char* class = wlc_view_get_class(view->view);
-    if(class != NULL) {
-      return scm_from_locale_string(class);
-    } else {
-      return scm_from_locale_string("");
+    const char *class = wlc_view_get_class (view->view);
+    if (class != NULL)
+    {
+      return scm_from_locale_string (class);
+    }
+    else
+    {
+      return scm_from_locale_string ("");
     }
   }
   return SCM_BOOL_F;
@@ -422,11 +428,14 @@ gram_view_get_title (SCM _view)
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
-    const char* title = wlc_view_get_title(view->view);
-    if(title != NULL) {
-      return scm_from_locale_string(title);
-    } else {
-      return scm_from_locale_string("");
+    const char *title = wlc_view_get_title (view->view);
+    if (title != NULL)
+    {
+      return scm_from_locale_string (title);
+    }
+    else
+    {
+      return scm_from_locale_string ("");
     }
   }
   return SCM_BOOL_F;
@@ -436,24 +445,29 @@ static SCM
 gram_view_type_scm (uint32_t type)
 {
   SCM types = SCM_EOL;
-  if(type & WLC_BIT_MODAL) {
-    types = scm_cons(scm_from_locale_symbol("modal"), types);
+  if (type & WLC_BIT_MODAL)
+  {
+    types = scm_cons (scm_from_locale_symbol ("modal"), types);
   }
 
-  if(type & WLC_BIT_OVERRIDE_REDIRECT) {
-    types = scm_cons(scm_from_locale_symbol("override-redirect"), types);
+  if (type & WLC_BIT_OVERRIDE_REDIRECT)
+  {
+    types = scm_cons (scm_from_locale_symbol ("override-redirect"), types);
   }
 
-  if(type & WLC_BIT_POPUP) {
-    types = scm_cons(scm_from_locale_symbol("popup"), types);
+  if (type & WLC_BIT_POPUP)
+  {
+    types = scm_cons (scm_from_locale_symbol ("popup"), types);
   }
 
-  if(type & WLC_BIT_SPLASH) {
-    types = scm_cons(scm_from_locale_symbol("splash"), types);
+  if (type & WLC_BIT_SPLASH)
+  {
+    types = scm_cons (scm_from_locale_symbol ("splash"), types);
   }
 
-  if(type & WLC_BIT_UNMANAGED) {
-    types = scm_cons(scm_from_locale_symbol("unmanaged"), types);
+  if (type & WLC_BIT_UNMANAGED)
+  {
+    types = scm_cons (scm_from_locale_symbol ("unmanaged"), types);
   }
 
   return types;
@@ -474,11 +488,12 @@ gram_view_get_types (SCM _view)
 static SCM
 gram_view_show (SCM _view, SCM _output)
 {
-  scm_assert_smob_type(gram_view_tag, _view);
-  scm_assert_smob_type(gram_output_tag, _output);
-  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA(_view);
-  struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA(_output);
-  if(view->active && output->active) {
+  scm_assert_smob_type (gram_view_tag, _view);
+  scm_assert_smob_type (gram_output_tag, _output);
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  struct gram_output *output = (struct gram_output *) SCM_SMOB_DATA (_output);
+  if (view->active && output->active)
+  {
     wlc_view_set_mask (view->view,
                        wlc_output_get_mask (wlc_view_get_output
                                             (view->view)));
@@ -490,10 +505,11 @@ gram_view_show (SCM _view, SCM _output)
 static SCM
 gram_view_hide (SCM _view)
 {
-  scm_assert_smob_type(gram_view_tag, _view);
-  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA(_view);
-  if(view->active) {
-    wlc_view_set_mask(view->view, 0);
+  scm_assert_smob_type (gram_view_tag, _view);
+  struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
+  if (view->active)
+  {
+    wlc_view_set_mask (view->view, 0);
     return _view;
   }
   return SCM_BOOL_F;

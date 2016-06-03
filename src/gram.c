@@ -33,6 +33,12 @@ keyboard_key (wlc_handle view, uint32_t time,
     gram_swallow = false;
     return t == NULL || *t;
   }
+  else if (state == WLC_KEY_STATE_RELEASED)
+  {
+    bool *t = (bool *) scm_with_guile (gram_keyup_hook_run, &keysym);
+    gram_swallow = false;
+    return t == NULL || *t;
+  }
 
   return false;
 }
@@ -226,15 +232,15 @@ main (int argc, char **argv)
 {
   wlc_log_set_handler (logger);
 
-  wlc_set_output_created_cb (output_created); // Done - Untested
-  wlc_set_output_destroyed_cb (output_destroyed); // Done - Untested
-  wlc_set_output_focus_cb (output_focus); // Done - Untested
-  wlc_set_output_resolution_cb (output_resolution); // Done - Untested
-  wlc_set_output_render_pre_cb (output_render_pre); // Done - Untested
-  wlc_set_output_render_post_cb (output_render_post); // Done - Untested
-  wlc_set_view_created_cb (view_created); // Done
-  wlc_set_view_destroyed_cb (view_destroyed); // Done - Untested
-  wlc_set_view_focus_cb (view_focus); // Done - Untested
+  wlc_set_output_created_cb (output_created);   // Done - Untested
+  wlc_set_output_destroyed_cb (output_destroyed);       // Done - Untested
+  wlc_set_output_focus_cb (output_focus);       // Done - Untested
+  wlc_set_output_resolution_cb (output_resolution);     // Done - Untested
+  wlc_set_output_render_pre_cb (output_render_pre);     // Done - Untested
+  wlc_set_output_render_post_cb (output_render_post);   // Done - Untested
+  wlc_set_view_created_cb (view_created);       // Done
+  wlc_set_view_destroyed_cb (view_destroyed);   // Done - Untested
+  wlc_set_view_focus_cb (view_focus);   // Done - Untested
   wlc_set_view_move_to_output_cb (view_move_to_output); // Done - Untested
   /* punting on these for the moment */
   wlc_set_view_request_geometry_cb (view_request_geometry);
@@ -242,13 +248,13 @@ main (int argc, char **argv)
   /* wlc_set_move_cb (view_request_move); */
   /* wlc_set_resize_cb (view_request_resize); */
   wlc_set_view_render_pre_cb (view_render_pre); // Done - Untested
-  wlc_set_view_render_post_cb (view_render_post); // Done - Untested
-  wlc_set_keyboard_key_cb (keyboard_key); // Done - should add keyup
+  wlc_set_view_render_post_cb (view_render_post);       // Done - Untested
+  wlc_set_keyboard_key_cb (keyboard_key);       // Done - should add keyup
   /* the pointer_button and pointer_scroll events should be tied into the key
      system e.g. (kbd "M-Mouse1") (kbd "M-ScrollUp") */
   /* wlc_set_pointer_button_cb (pointer_button);  */
   /* wlc_set_pointer_scroll_cb (pointer_scroll); */
-  wlc_set_pointer_motion_cb (pointer_motion); // Done - untested
+  wlc_set_pointer_motion_cb (pointer_motion);   // Done - untested
   /* this .touch should also be tied into the key system */
   /* wlc_set_touch_touch_cb (touch_touch); */
   wlc_set_compositor_ready_cb (compositor_ready);

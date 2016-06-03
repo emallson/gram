@@ -14,9 +14,9 @@ gram_output_print (SCM output_smob, SCM port, scm_print_state * pstate)
   struct gram_output *output =
     (struct gram_output *) SCM_SMOB_DATA (output_smob);
 
-  const char* name = wlc_output_get_name (output->output);
+  const char *name = wlc_output_get_name (output->output);
   scm_puts ("#<output ", port);
-  scm_puts (name? name : "UNTITLED", port);
+  scm_puts (name ? name : "UNTITLED", port);
   scm_puts (">", port);
 
   return 1;
@@ -157,7 +157,8 @@ gram_output_get_resolution (SCM _output)
   if (output->active)
   {
     const struct wlc_size *size = wlc_output_get_resolution (output->output);
-    if(!size) {
+    if (!size)
+    {
       return SCM_BOOL_F;
     }
     return scm_cons (scm_from_uint32 (size->w), scm_from_uint32 (size->h));
@@ -197,7 +198,7 @@ gram_output_set_views (SCM _output, SCM _views)
     while (!scm_null_p (cur))
     {
       SCM _view = scm_car (cur);
-      _views = scm_cdr(cur);
+      _views = scm_cdr (cur);
       scm_assert_smob_type (gram_view_tag, _view);
       struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
       if (view->active)

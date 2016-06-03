@@ -92,7 +92,8 @@ START_TEST (test_view_deactivate_fns)
 
   scm_c_use_module ("gram view");
   ck_assert_ptr_eq (scm_call_1
-                    (scm_variable_ref (scm_c_lookup ("close")), sa), SCM_BOOL_T);
+                    (scm_variable_ref (scm_c_lookup ("close")), sa),
+                    SCM_BOOL_T);
   /* mutations should return the view itself */
   ck_assert_ptr_eq (scm_call_1
                     (scm_variable_ref (scm_c_lookup ("focus")), sa), sa);

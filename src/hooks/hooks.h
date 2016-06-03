@@ -1,4 +1,5 @@
 #include "keydown.h"
+#include "keyup.h"
 
 #include "view_created.h"
 #include "view_destroyed.h"

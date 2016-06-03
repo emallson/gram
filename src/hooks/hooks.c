@@ -6,6 +6,7 @@ static void
 init_gram_key_hooks (void *ignore)
 {
   gram_keydown_hook_init ();
+  gram_keyup_hook_init ();
 }
 
 static void

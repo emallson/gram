@@ -21,7 +21,6 @@ gram_view_destroyed_hook_init (void)
 void *
 gram_view_destroyed_hook_run (void *data)
 {
-  scm_c_run_hook (gram_view_destroyed_hook,
-    SCM_EOL);
+  scm_c_run_hook (gram_view_destroyed_hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }

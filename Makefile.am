@@ -4,7 +4,7 @@ AM_LDFLAGS=@GUILE_LIBS@ @WLC_LIBS@
 bin_PROGRAMS = gram
 gram_SOURCES = src/gram.c src/types/keysym.c src/types/view.c		\
 	src/types/output.c src/types/types.c src/hooks/hooks.c			\
-	src/hooks/keydown.c src/hooks/view_created.c					\
+	src/hooks/keydown.c src/hooks/keyup.c src/hooks/view_created.c	\
 	src/hooks/compositor_ready.c src/hooks/compositor_terminate.c	\
 	src/hooks/output_created.c src/hooks/output_destroyed.c			\
 	src/hooks/output_focus.c src/hooks/output_render_post.c			\
