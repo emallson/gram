@@ -12,7 +12,10 @@ gram_keysym_equalp (SCM a, SCM b)
   struct gram_keysym *k_a = (struct gram_keysym *) SCM_SMOB_DATA (a);
   struct gram_keysym *k_b = (struct gram_keysym *) SCM_SMOB_DATA (b);
 
-  if (k_a->sym == k_b->sym && k_a->mods.mods == k_b->mods.mods)
+  if (k_a->sym == k_b->sym
+      && k_a->mods.mods == k_b->mods.mods
+      && k_a->mouse == k_b->mouse
+      && k_a->mouse_button == k_b->mouse_button)
   {
     return SCM_BOOL_T;
   }
@@ -39,16 +42,21 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
     scm_puts ("M-", port);
   }
 
-  char buf[64];
-  xkb_keysym_to_utf8 (keysym->sym, buf, 64);
+  if(keysym->mouse) {
+    scm_puts ("Mouse", port);
+    scm_putc(keysym->mouse_button + '0', port);
+  } else {
+    char buf[64];
+    xkb_keysym_to_utf8 (keysym->sym, buf, 64);
 
-  if (buf[0] > 0 && buf[0] <= 0x7F)
-  {
-    xkb_keysym_get_name (keysym->sym, buf, 64);
+    if (buf[0] > 0 && buf[0] <= 0x7F)
+    {
+      xkb_keysym_get_name (keysym->sym, buf, 64);
+    }
+
+    SCM name = scm_from_utf8_string (buf);
+    scm_display (name, port);
   }
-
-  SCM name = scm_from_utf8_string (buf);
-  scm_display (name, port);
   scm_puts (">", port);
 
   return 1;
@@ -72,6 +80,8 @@ gram_keysym_construct (SCM key_desc)
   char *buf, *prev = NULL;
 
   struct gram_keysym keysym;
+  keysym.mouse_button = -1;
+  keysym.mouse = false;
   keysym.mods.mods = 0;
   keysym.mods.leds = 0;
 
@@ -98,6 +108,7 @@ gram_keysym_construct (SCM key_desc)
         return SCM_BOOL_F;
       }
     }
+    /* TODO: wtf is this? */
     else if (prev != NULL && strlen (prev) == 1)
     {
       scm_misc_error ("kbd", "~A is not a valid keysym",
@@ -109,7 +120,22 @@ gram_keysym_construct (SCM key_desc)
     buf = strtok (NULL, "<->");
   }
 
-  if (keysym.sym == XKB_KEY_NoSymbol)
+  /* check for mouse-sym */
+  if (keysym.sym == XKB_KEY_NoSymbol && prev
+      && strnlen(prev, 7) == 6  /* there are no double-digit mouse
+                                 * buttons, and I defy you to show me
+                                 * otherwise */
+      && strncmp(prev, "Mouse", 5) == 0)
+  {
+    /* if the symbol isn't matched by XKB, and the prev buffer is
+     * non-null and begins with "Mouse", it is a Mouse-symbol */
+
+    /* TODO: representing mouse/scroll buttons? they don't have XKB
+     * keysyms and I don't want to store them in the same way. */
+    keysym.mouse = true;
+    keysym.mouse_button = atoi(&prev[5]);
+  }
+  else if (keysym.sym == XKB_KEY_NoSymbol)
   {
     scm_misc_error ("kbd", "~A is not a valid keysym",
                     scm_list_1 (scm_from_locale_string (prev)));

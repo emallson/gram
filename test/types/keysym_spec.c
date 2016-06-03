@@ -84,6 +84,27 @@ START_TEST (test_keysym_kbd)
 }
 
 END_TEST
+
+START_TEST (test_keysym_kbd_mouse)
+{
+  scm_init_guile();
+  init_gram_keysym();
+  scm_c_use_module("gram keysym");
+
+  SCM res = scm_call_1 (scm_variable_ref (scm_c_lookup ("kbd")),
+                        scm_from_locale_string ("M-Mouse2"));
+
+  scm_assert_smob_type (gram_keysym_tag, res);
+  struct gram_keysym ks = *(struct gram_keysym *) SCM_SMOB_DATA (res);
+
+  ck_assert_uint_eq (ks.keycode, 0);
+  ck_assert_uint_eq (ks.sym, XKB_KEY_NoSymbol);
+  ck_assert_uint_eq (ks.mods.mods, WLC_BIT_MOD_ALT);
+  ck_assert_uint_eq (ks.mods.leds, 0);
+  ck_assert_uint_eq (ks.mouse, true);
+  ck_assert_uint_eq (ks.mouse_button, 2);
+}
+END_TEST
 START_TEST (test_keysym_equalp_reflexive)
 {
   scm_init_guile ();
@@ -102,6 +123,22 @@ START_TEST (test_keysym_equalp_reflexive)
   SCM M_x_scm2 = gram_keysym_scm (&M_x);
 
   ck_assert (SCM_BOOL_T == scm_equal_p (M_x_scm, M_x_scm2));
+
+  struct gram_keysym M_Mouse3 = {
+    .keycode = 0,
+    .sym = XKB_KEY_NoSymbol,
+    .mouse = true,
+    .mouse_button = 3,
+    .mods = {
+      .leds = 0,
+      .mods = WLC_BIT_MOD_ALT,
+    }
+  };
+
+  SCM M_Mouse3_scm = gram_keysym_scm (&M_Mouse3);
+  SCM M_Mouse3_scm2 = gram_keysym_scm (&M_Mouse3);
+
+  ck_assert (SCM_BOOL_T == scm_equal_p (M_Mouse3_scm, M_Mouse3_scm2));
 }
 
 END_TEST
@@ -196,6 +233,39 @@ START_TEST (test_keysym_equalp_diff_leds)
 }
 
 END_TEST
+START_TEST (test_keysym_equalp_mouse)
+{
+  scm_init_guile ();
+  init_gram_keysym ();
+
+  struct gram_keysym M_x = {
+    .keycode = XKB_KEY_x,
+    .sym = XKB_KEY_x,
+    .mouse = false,
+    .mods = {
+             .leds = 0,
+             .mods = WLC_BIT_MOD_ALT,
+             }
+  };
+
+  struct gram_keysym M_Mouse3 = {
+    .keycode = 0,
+    .sym = XKB_KEY_NoSymbol,
+    .mouse = true,
+    .mouse_button = 3,
+    .mods = {
+      .leds = 0,
+      .mods = WLC_BIT_MOD_ALT,
+    }
+  };
+
+  SCM M_x_scm = gram_keysym_scm (&M_x);
+  SCM M_Mouse3_scm = gram_keysym_scm (&M_Mouse3);
+
+  ck_assert (SCM_BOOL_F == scm_equal_p (M_x_scm, M_Mouse3_scm));
+}
+
+END_TEST
 START_TEST (test_keysym_display)
 {
   scm_init_guile ();
@@ -206,13 +276,26 @@ START_TEST (test_keysym_display)
   struct gram_keysym M_x = {
     .keycode = XKB_KEY_x,
     .sym = XKB_KEY_x,
+    .mouse = false,
     .mods = {
              .leds = 0,
              .mods = WLC_BIT_MOD_ALT,
              }
   };
 
+  struct gram_keysym M_Mouse3 = {
+    .keycode = XKB_KEY_NoSymbol,
+    .sym = XKB_KEY_NoSymbol,
+    .mods = {
+             .leds = 0,
+             .mods = WLC_BIT_MOD_ALT,
+    },
+    .mouse = true,
+    .mouse_button = 3
+  };
+
   SCM M_x_scm = gram_keysym_scm (&M_x);
+  SCM M_Mouse3_scm = gram_keysym_scm(&M_Mouse3);
   SCM port = scm_open_output_string ();
   scm_display (M_x_scm, port);
 
@@ -239,6 +322,11 @@ START_TEST (test_keysym_display)
                     "#<keysym BackSpace>");
   scm_close (port);
 
+  port = scm_open_output_string ();
+  scm_display(M_Mouse3_scm, port);
+  ck_assert_str_eq(scm_to_locale_string (scm_get_output_string (port)),
+                   "#<keysym M-Mouse3>");
+  scm_close (port);
 }
 
 END_TEST
@@ -298,6 +386,7 @@ START_TEST (test_keysym_swallow)
 }
 
 END_TEST Suite *
+
 keysym_suite (void)
 {
   Suite *s;
@@ -313,6 +402,7 @@ keysym_suite (void)
   tcase_add_test (tc_convert, test_keysym_to_scm);
   tcase_add_test (tc_convert, test_keysym_from_scm);
   tcase_add_test (tc_convert, test_keysym_kbd);
+  tcase_add_test (tc_convert, test_keysym_kbd_mouse);
   suite_add_tcase (s, tc_convert);
 
   /* testing permutations of these is left as an exercise for the
@@ -323,6 +413,7 @@ keysym_suite (void)
   tcase_add_test (tc_equalp, test_keysym_equalp_diff_code);
   tcase_add_test (tc_equalp, test_keysym_equalp_diff_mods);
   tcase_add_test (tc_equalp, test_keysym_equalp_diff_leds);
+  tcase_add_test (tc_equalp, test_keysym_equalp_mouse);
   suite_add_tcase (s, tc_equalp);
 
   tc_display = tcase_create ("display");

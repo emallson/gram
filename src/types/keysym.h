@@ -1,4 +1,5 @@
 #pragma once
+#include <stdbool.h>
 #include <libguile.h>
 #include <wlc/wlc.h>
 
@@ -7,6 +8,8 @@ struct gram_keysym
   struct wlc_modifiers mods;
   uint32_t sym;
   uint32_t keycode;
+  bool mouse;
+  uint32_t mouse_button;
 };
 
 
