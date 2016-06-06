@@ -30,10 +30,16 @@
   (set! km (assoc-set! km key fn)))
 
 (define (keymap-hook km)
-  (lambda (key)
+  (lambda (key view)
     (let ((fn (assoc-ref (primitive-eval km) key)))
       (when fn
-        (fn)
+        (let ((arity (car (assoc-ref (procedure-properties fn) 'arity))))
+          ;; call either (fn) or (fn view) or (fn key view) based on
+          ;; procedure arity
+          (case arity
+            [(0) (fn)]
+            [(1) (fn view)]
+            [(2) (fn key view)]))
         (swallow-next-key)))))
 
 (add-hook! keydown-hook (keymap-hook 'default-keymap))
@@ -45,3 +51,4 @@
 (define-key! default-keymap (kbd "M-e") (cute move-cursor 'left))
 (define-key! default-keymap (kbd "C-M-n") (cute move-window 'right))
 (define-key! default-keymap (kbd "C-M-e") (cute move-window 'left))
+(define-key! default-keymap (kbd "Mouse1") view-focus)

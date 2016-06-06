@@ -31,15 +31,23 @@ keyboard_key (wlc_handle view, uint32_t time,
 
   if (state == WLC_KEY_STATE_PRESSED)
   {
-    bool *t = (bool *) scm_with_guile (gram_keydown_hook_run, &keysym);
+    struct keydown_input input = {
+      .view = view,
+      .keysym = keysym
+    };
+    bool t = *(bool *) scm_with_guile (gram_keydown_hook_run, &input);
     gram_swallow = false;
-    return t == NULL || *t;
+    return t;
   }
   else if (state == WLC_KEY_STATE_RELEASED)
   {
-    bool *t = (bool *) scm_with_guile (gram_keyup_hook_run, &keysym);
+    struct keyup_input input = {
+      .view = view,
+      .keysym = keysym
+    };
+    bool t = *(bool *) scm_with_guile (gram_keyup_hook_run, &input);
     gram_swallow = false;
-    return t == NULL || *t;
+    return t;
   }
 
   return false;
@@ -182,20 +190,29 @@ pointer_button (wlc_handle view, uint32_t time, const struct wlc_modifiers *modi
     .sym = 0,
     .mods = mods,
     .mouse = true,
-    .mouse_button = button
+    /* the magic number 272 appears to be what mouse button 1 is */
+    .mouse_button = button - 271
   };
 
   if (state == WLC_BUTTON_STATE_PRESSED)
   {
-    bool *t = (bool *) scm_with_guile (gram_keydown_hook_run, &keysym);
+    struct keydown_input input = {
+      .view = view,
+      .keysym = keysym
+    };
+    bool t = *(bool *) scm_with_guile (gram_keydown_hook_run, &input);
     gram_swallow = false;
-    return t == NULL || *t;
+    return t;
   }
   else if (state == WLC_BUTTON_STATE_RELEASED)
   {
-    bool *t = (bool *) scm_with_guile (gram_keyup_hook_run, &keysym);
+    struct keyup_input input = {
+      .view = view,
+      .keysym = keysym
+    };
+    bool t = *(bool *) scm_with_guile (gram_keyup_hook_run, &input);
     gram_swallow = false;
-    return t == NULL || *t;
+    return t;
   }
 
   return false;

@@ -12,13 +12,16 @@ gram_keysym_equalp (SCM a, SCM b)
   struct gram_keysym *k_a = (struct gram_keysym *) SCM_SMOB_DATA (a);
   struct gram_keysym *k_b = (struct gram_keysym *) SCM_SMOB_DATA (b);
 
-  if (k_a->sym == k_b->sym
-      && k_a->mods.mods == k_b->mods.mods
-      && k_a->mouse == k_b->mouse
-      && k_a->mouse_button == k_b->mouse_button)
-  {
+  /* log relevant properties of both keysyms. Useful for debugging. */
+  /* printf("mouse: %d %d, button: %d %d, sym: %d %d, mods: %d %d\n", */
+  /*        k_a->mouse, k_b->mouse, k_a->mouse_button, k_b->mouse_button, */
+  /*        k_a->sym, k_b->sym, k_a->mods.mods, k_b->mods.mods); */
+  if (((k_a->mouse && k_b->mouse && k_a->mouse_button == k_b->mouse_button)
+       || (!k_a->mouse && !k_b->mouse && k_a->sym == k_b->sym))
+      && k_a->mods.mods == k_b->mods.mods) {
     return SCM_BOOL_T;
   }
+
   return SCM_BOOL_F;
 }
 
@@ -44,8 +47,7 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
 
   if(keysym->mouse) {
     scm_puts ("Mouse", port);
-    /* the magic number 272 appears to be what mouse button 1 is */
-    scm_putc(keysym->mouse_button + '1' - 272, port);
+    scm_putc(keysym->mouse_button + '0', port);
   } else {
     char buf[64];
     xkb_keysym_to_utf8 (keysym->sym, buf, 64);
