@@ -44,7 +44,8 @@ gram_keysym_print (SCM keysym_smob, SCM port, scm_print_state * pstate)
 
   if(keysym->mouse) {
     scm_puts ("Mouse", port);
-    scm_putc(keysym->mouse_button + '0', port);
+    /* the magic number 272 appears to be what mouse button 1 is */
+    scm_putc(keysym->mouse_button + '1' - 272, port);
   } else {
     char buf[64];
     xkb_keysym_to_utf8 (keysym->sym, buf, 64);

@@ -168,6 +168,39 @@ pointer_motion (wlc_handle view, uint32_t time, const struct wlc_point *point)
   return false;
 }
 
+static bool
+pointer_button (wlc_handle view, uint32_t time, const struct wlc_modifiers *modifiers,
+                uint32_t button, enum wlc_button_state state,
+                const struct wlc_point *point)
+{
+  struct wlc_modifiers mods;
+
+  memcpy (&mods, modifiers, sizeof (mods));
+
+  struct gram_keysym keysym = {
+    .keycode = 0,
+    .sym = 0,
+    .mods = mods,
+    .mouse = true,
+    .mouse_button = button
+  };
+
+  if (state == WLC_BUTTON_STATE_PRESSED)
+  {
+    bool *t = (bool *) scm_with_guile (gram_keydown_hook_run, &keysym);
+    gram_swallow = false;
+    return t == NULL || *t;
+  }
+  else if (state == WLC_BUTTON_STATE_RELEASED)
+  {
+    bool *t = (bool *) scm_with_guile (gram_keyup_hook_run, &keysym);
+    gram_swallow = false;
+    return t == NULL || *t;
+  }
+
+  return false;
+}
+
 static void
 compositor_ready ()
 {
@@ -254,7 +287,7 @@ main (int argc, char **argv)
   wlc_set_keyboard_key_cb (keyboard_key);       // Done - should add keyup
   /* the pointer_button and pointer_scroll events should be tied into the key
      system e.g. (kbd "M-Mouse1") (kbd "M-ScrollUp") */
-  /* wlc_set_pointer_button_cb (pointer_button);  */
+  wlc_set_pointer_button_cb (pointer_button);
   /* wlc_set_pointer_scroll_cb (pointer_scroll); */
   wlc_set_pointer_motion_cb (pointer_motion);   // Done - untested
   /* this .touch should also be tied into the key system */
