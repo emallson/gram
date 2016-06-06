@@ -24,7 +24,9 @@ keyboard_key (wlc_handle view, uint32_t time,
   struct gram_keysym keysym = {
     .keycode = key,
     .sym = wlc_keyboard_get_keysym_for_key (key, NULL),
-    .mods = mods
+    .mods = mods,
+    .mouse = false,
+    .mouse_button = -1
   };
 
   if (state == WLC_KEY_STATE_PRESSED)
