@@ -1,6 +1,6 @@
 (define-module (gram lib motion)
   #:use-module (gram lib zipper)
-  #:use-module ((gram lib render-hooks) #:select (transform-layout! current-view))
+  #:use-module ((gram lib render-hooks) #:select (transform-layout! current-view %current-workspace set-focused-layout!))
   #:use-module ((gram view) #:renamer (symbol-prefix-proc 'view-))
   #:export (move-cursor move-window))
 
@@ -20,5 +20,26 @@ layer."
   "Move the window and cursor in the specified direction in the
 current layer."
   (transform-layout! (lambda (z)
-                       (let ((w (zipper-node z)))
-                         (z-> z (rotate dir) (go dir))))))
+                       (z-> z (rotate dir) (go dir)))))
+
+(define (move-cursor-to-layout layout)
+  "Move the focus cursor to the specified layout."
+  (if (member layout '(tiling floating))
+      (begin
+        (set-focused-layout! %current-workspace layout)
+        (let ((v (current-view)))
+          (when v
+            (view-focus v))))
+      (error "~a is not a valid layout (try 'tiling or 'floating)" layout)))
+
+(define (move-window-to-layout layout)
+  "Move the current window to the specified layout and focus it."
+  (if (member layout '(tiling floating))
+      (begin
+        (let ((v (current-view)))
+          (transform-layout! (lambda (z)
+                               (z-> z (del))))
+          (set-focused-layout! %current-workspace layout)
+          (transform-layout! (lambda (z)
+                               (z-> z (insert v 'right))))
+          (move-cursor 'right)))))
