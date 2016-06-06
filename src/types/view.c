@@ -209,8 +209,8 @@ gram_view_set_geometry (SCM _view, SCM _geo)
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
-    if (scm_pair_p (_geo) && scm_pair_p (scm_car (_geo))
-        && scm_pair_p (scm_cdr (_geo)))
+    if (scm_pair_p (_geo) == SCM_BOOL_T && scm_pair_p (scm_car (_geo)) == SCM_BOOL_T
+        && scm_pair_p (scm_cdr (_geo)) == SCM_BOOL_T)
     {
       const struct wlc_geometry geo = gram_geometry_from_scm (_geo);
       const struct wlc_geometry curr = *wlc_view_get_geometry (view->view);
@@ -230,51 +230,64 @@ gram_view_set_geometry (SCM _view, SCM _geo)
   return SCM_BOOL_F;
 }
 
-/* not sure this is right. seems like a bitmask? */
 static SCM
 gram_view_state_scm (uint32_t state)
 {
-  switch (state)
-  {
-  case WLC_BIT_ACTIVATED:
-    return scm_from_locale_symbol ("activated");
-  case WLC_BIT_FULLSCREEN:
-    return scm_from_locale_symbol ("fullscreen");
-  case WLC_BIT_MAXIMIZED:
-    return scm_from_locale_symbol ("maximized");
-  case WLC_BIT_MOVING:
-    return scm_from_locale_string ("moving");
-  case WLC_BIT_RESIZING:
-    return scm_from_locale_string ("resizing");
+  SCM state_list = SCM_EOL;
+  if (state & WLC_BIT_ACTIVATED) {
+    state_list = scm_cons(scm_from_locale_symbol ("activated"), state_list);
   }
-  return SCM_BOOL_F;
+  if (state & WLC_BIT_FULLSCREEN) {
+    state_list = scm_cons(scm_from_locale_symbol ("fullscreen"), state_list);
+  }
+  if (state & WLC_BIT_MAXIMIZED) {
+    state_list = scm_cons(scm_from_locale_symbol ("maximized"), state_list);
+  }
+  if (state & WLC_BIT_MOVING) {
+    state_list = scm_cons(scm_from_locale_symbol ("moving"), state_list);
+  }
+  if (state & WLC_BIT_RESIZING) {
+    state_list = scm_cons(scm_from_locale_symbol ("resizing"), state_list);
+  }
+
+  return state_list;
 }
 
-/* see above comment */
 static uint32_t
 gram_view_state_from_scm (SCM _state)
 {
-  if (scm_eq_p (scm_from_locale_symbol ("activated"), _state))
-  {
-    return WLC_BIT_ACTIVATED;
+  uint32_t state = 0;
+  if(scm_list_p(_state) == SCM_BOOL_F) {
+    return state;
   }
-  if (scm_eq_p (scm_from_locale_symbol ("fullscreen"), _state))
-  {
-    return WLC_BIT_FULLSCREEN;
+
+  SCM lst = _state;
+  while(scm_null_p(lst) == SCM_BOOL_F) {
+    SCM car = scm_car(lst);
+    if (scm_eq_p (scm_from_locale_symbol ("activated"), car) == SCM_BOOL_T)
+    {
+      state |= WLC_BIT_ACTIVATED;
+    }
+    if (scm_eq_p (scm_from_locale_symbol ("fullscreen"), car) == SCM_BOOL_T)
+    {
+      state |= WLC_BIT_FULLSCREEN;
+    }
+    if (scm_eq_p (scm_from_locale_symbol ("maximized"), car) == SCM_BOOL_T)
+    {
+      state |= WLC_BIT_MAXIMIZED;
+    }
+    if (scm_eq_p (scm_from_locale_symbol ("moving"), car) == SCM_BOOL_T)
+    {
+      state |= WLC_BIT_MOVING;
+    }
+    if (scm_eq_p (scm_from_locale_symbol ("resizing"), car) == SCM_BOOL_T)
+    {
+      state |= WLC_BIT_RESIZING;
+    }
+
+    lst = scm_cdr(lst);
   }
-  if (scm_eq_p (scm_from_locale_symbol ("maximized"), _state))
-  {
-    return WLC_BIT_MAXIMIZED;
-  }
-  if (scm_eq_p (scm_from_locale_symbol ("moving"), _state))
-  {
-    return WLC_BIT_MOVING;
-  }
-  if (scm_eq_p (scm_from_locale_symbol ("resizing"), _state))
-  {
-    return WLC_BIT_RESIZING;
-  }
-  return -1;
+  return state;
 }
 
 static SCM
@@ -291,20 +304,21 @@ gram_view_get_state (SCM _view)
 
 
 static SCM
-gram_view_set_state (SCM _view, SCM _state, SCM _toggle)
+gram_view_set_state (SCM _view, SCM _state)
 {
   scm_assert_smob_type (gram_view_tag, _view);
 
   struct gram_view *view = (struct gram_view *) SCM_SMOB_DATA (_view);
   if (view->active)
   {
+    /* should probably rewrite this to set state in the `from`
+     * function, but idk. Not sure what the repercussions of always
+     * setting every state are. */
     uint32_t state = gram_view_state_from_scm (_state);
-    if (state != -1)
-    {
-      wlc_view_set_state (view->view, state, scm_is_false_or_nil (_toggle));
-      return SCM_ELISP_NIL;
+    for(int i = 0; i < 5; i++) {
+      wlc_view_set_state(view->view, 1 << i, !((state & (1 << i)) == 0));
     }
-    return SCM_BOOL_F;
+    return _view;
   }
   return SCM_BOOL_F;
 }
@@ -525,7 +539,7 @@ init_gram_view_methods (void *data)
   scm_c_define_gsubr ("get-geometry", 1, 0, 0, gram_view_get_geometry);
   scm_c_define_gsubr ("set-geometry", 2, 0, 0, gram_view_set_geometry);
   scm_c_define_gsubr ("get-state", 1, 0, 0, gram_view_get_state);
-  scm_c_define_gsubr ("set-state", 3, 0, 0, gram_view_set_state);
+  scm_c_define_gsubr ("set-state", 2, 0, 0, gram_view_set_state);
   /* scm_c_define_gsubr ("get-mask", 1, 0, 0, gram_view_get_mask); */
   scm_c_define_gsubr ("get-parent", 1, 0, 0, gram_view_get_parent);
   scm_c_define_gsubr ("set-parent", 2, 0, 0, gram_view_set_parent);
