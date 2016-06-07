@@ -155,13 +155,29 @@ gram_key_swallow_next (void)
   return SCM_BOOL_T;
 }
 
+SCM
+gram_keysym_unmodified (SCM keysym_smob)
+{
+  scm_assert_smob_type(gram_keysym_tag, keysym_smob);
+  struct gram_keysym *keysym =
+    (struct gram_keysym *) SCM_SMOB_DATA (keysym_smob);
+  struct gram_keysym copy;      /* copying just to guarantee that I
+                                 * don't corrupt the original */
+  memcpy(&copy,keysym, sizeof(struct gram_keysym));
+
+  copy.mods.mods = 0;
+
+  return gram_keysym_scm(&copy);
+}
+
 void
 init_gram_keysym_fns (void *data)
 {
   scm_c_define_gsubr ("swallow-next-key", 0, 0, 0, gram_key_swallow_next);
   scm_c_define_gsubr ("kbd", 1, 0, 0, gram_keysym_construct);
+  scm_c_define_gsubr ("unmodified", 1, 0, 0, gram_keysym_unmodified);
 
-  scm_c_export ("swallow-next-key", "kbd", NULL);
+  scm_c_export ("swallow-next-key", "kbd", "unmodified", NULL);
 }
 
 void

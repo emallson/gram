@@ -385,12 +385,48 @@ START_TEST (test_keysym_swallow)
   ck_assert_ptr_eq (res, SCM_BOOL_T);
 }
 
-END_TEST Suite *
+END_TEST
+
+START_TEST (test_keysym_unmodified)
+{
+  scm_init_guile ();
+  init_gram_keysym ();
+
+  scm_c_use_module ("gram keysym");
+
+  struct gram_keysym ks = {
+    .keycode = XKB_KEY_x,
+    .sym = XKB_KEY_x,
+    .mods = {
+             .leds = 0,
+             .mods = WLC_BIT_MOD_ALT,
+    },
+    .mouse = false,
+    .mouse_button = -1
+  };
+
+  SCM res = scm_call_1 (scm_variable_ref (scm_c_lookup ("unmodified")),
+                        gram_keysym_scm(&ks));
+
+  scm_assert_smob_type(gram_keysym_tag, res);
+  struct gram_keysym *unmod = (struct gram_keysym*) SCM_SMOB_DATA(res);
+  /* it should reset mods */
+  ck_assert_uint_eq(unmod->mods.mods, 0);
+  /* it shouldn't change anything else */
+  ck_assert_uint_eq(unmod->mods.leds, ks.mods.leds);
+  ck_assert_uint_eq(unmod->sym, ks.sym);
+  ck_assert_uint_eq(unmod->keycode, ks.keycode);
+  ck_assert_uint_eq(unmod->mouse, ks.mouse);
+  ck_assert_uint_eq(unmod->mouse_button, ks.mouse_button);
+}
+END_TEST
+
+Suite *
 
 keysym_suite (void)
 {
   Suite *s;
-  TCase *tc_core, *tc_convert, *tc_equalp, *tc_display, *tc_swallow;
+  TCase *tc_core, *tc_convert, *tc_equalp, *tc_display, *tc_swallow, *tc_unmod;
 
   s = suite_create ("types/keysym");
 
@@ -424,6 +460,10 @@ keysym_suite (void)
   tc_swallow = tcase_create ("swallow");
   tcase_add_test (tc_swallow, test_keysym_swallow);
   suite_add_tcase (s, tc_swallow);
+
+  tc_unmod = tcase_create("unmodified");
+  tcase_add_test (tc_unmod, test_keysym_unmodified);
+  suite_add_tcase (s, tc_unmod);
 
   return s;
 }

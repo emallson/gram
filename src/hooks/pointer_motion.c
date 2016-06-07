@@ -28,3 +28,20 @@ gram_pointer_motion_hook_run (void *data)
                                         scm_from_uint32 (input->point->y))));
   return SCM_UNSPECIFIED;
 }
+
+SCM
+gram_pointer_position (void)
+{
+  struct wlc_point pos;
+  wlc_pointer_get_position(&pos);
+
+  return scm_cons(scm_from_uint32(pos.x),
+                  scm_from_uint32(pos.y));
+}
+
+void gram_pointer_fns_init (void)
+{
+  scm_c_define_gsubr("pointer-position", 0, 0, 0, gram_pointer_position);
+
+  scm_c_export("pointer-position", NULL);
+}

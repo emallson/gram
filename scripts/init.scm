@@ -11,7 +11,8 @@
              (gram lib zipper)
              (gram lib motion)
              (gram lib render-hooks)
-             (gram lib keymap))
+             (gram lib keymap)
+             (gram lib drag))
 
 (spawn-server)
 
@@ -25,7 +26,7 @@
   (open-input-output-pipe cmd))
 
 
-(add-hook! keydown-hook (keymap-hook 'default-keymap))
+(add-hook! keydown-hook (keymap-hook default-keymap))
 
 (define-key! default-keymap (kbd "M-x") (cute run "dmenu_run"))
 (define-key! default-keymap (kbd "M-<Space>") (cute run "st"))
@@ -35,3 +36,6 @@
 (define-key! default-keymap (kbd "C-M-n") (cute move-window 'right))
 (define-key! default-keymap (kbd "C-M-e") (cute move-window 'left))
 (define-key! default-keymap (kbd "Mouse1") view-focus)
+
+(drag-setup default-keymap drag-move-view (kbd "M-Mouse1"))
+(drag-setup default-keymap drag-resize-view (kbd "M-Mouse2"))

@@ -10,7 +10,7 @@
   #:use-module (gram view hooks)
   #:use-module ((gram output) #:renamer (symbol-prefix-proc 'output-))
   #:use-module (gram output hooks)
-  #:export (transform-workspace! transform-layout! current-view))
+  #:export (transform-workspace! transform-layout! current-view add-view re-render!))
 
 (define %default-layout (tall))
 (define %default-floating-layout (simple))
@@ -151,7 +151,8 @@ created."
 (define (view-destroyed)
   (transform-workspace! 'both (lambda (z) (zfilter z view-active?)))
   (when (current-view)
-      (view-focus (current-view))))
+      (view-focus (current-view)))
+  (re-render!))
 
 (define (view-handle-geometry view geo)
   (format #t "View ~a requested geometry ~a\n" view geo))

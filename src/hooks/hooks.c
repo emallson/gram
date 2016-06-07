@@ -39,6 +39,13 @@ init_gram_pointer_hooks (void *ignore)
 }
 
 static void
+init_gram_pointer (void *ignore)
+{
+  /* defined in pointer_motion.h */
+  gram_pointer_fns_init();
+}
+
+static void
 init_gram_compositor_hooks (void *ignore)
 {
   gram_compositor_ready_hook_init ();
@@ -54,4 +61,8 @@ init_gram_hooks (void)
   scm_c_define_module ("gram pointer hooks", init_gram_pointer_hooks, NULL);
   scm_c_define_module ("gram compositor hooks", init_gram_compositor_hooks,
                        NULL);
+  /* this is out of place but I don't have a better spot for it right
+   * now. */
+
+  scm_c_define_module ("gram pointer", init_gram_pointer, NULL);
 }

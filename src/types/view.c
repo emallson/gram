@@ -170,10 +170,10 @@ SCM
 gram_geometry_scm (const struct wlc_geometry * geo)
 {
   /* can't make records from c and a new smob for this is really overkill */
-  return scm_cons (scm_cons (scm_from_uint32 (geo->origin.x),
-                             scm_from_uint32 (geo->origin.y)),
-                   scm_cons (scm_from_uint32 (geo->size.w),
-                             scm_from_uint32 (geo->size.h)));
+  return scm_cons (scm_cons (scm_from_int32 (geo->origin.x),
+                             scm_from_int32 (geo->origin.y)),
+                   scm_cons (scm_from_int32 (geo->size.w),
+                             scm_from_int32 (geo->size.h)));
 }
 
 /* converts an SCM to a wlc_geometry. Assumes input is valid. */
@@ -181,10 +181,10 @@ static const struct wlc_geometry
 gram_geometry_from_scm (SCM _geo)
 {
   struct wlc_geometry geo = {
-    {scm_to_uint32 (scm_caar (_geo)),
-     scm_to_uint32 (scm_cdar (_geo))},
-    {scm_to_uint32 (scm_cadr (_geo)),
-     scm_to_uint32 (scm_cddr (_geo))}
+    {scm_to_int32 (scm_caar (_geo)),
+     scm_to_int32 (scm_cdar (_geo))},
+    {scm_to_int32 (scm_cadr (_geo)),
+     scm_to_int32 (scm_cddr (_geo))}
   };
 
   return geo;

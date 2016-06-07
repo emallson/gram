@@ -11,3 +11,7 @@ struct pointer_motion_input
 
 void gram_pointer_motion_hook_init (void);
 void *gram_pointer_motion_hook_run (void *data);
+
+/* TODO: move this to its own file. Leaving it here for now because I
+ * don't want to add all that infrastructure for a single function. */
+void gram_pointer_fns_init (void);
