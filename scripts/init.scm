@@ -37,5 +37,8 @@
 (define-key! default-keymap (kbd "C-M-e") (cute move-window 'left))
 (define-key! default-keymap (kbd "Mouse1") window-focus)
 
+(define-key! default-keymap (kbd "M-.") (cute focus-layer 'floating))
+(define-key! default-keymap (kbd "M-,") (cute focus-layer 'tiling))
+
 (drag-setup default-keymap drag-move-view (kbd "M-Mouse1"))
 (drag-setup default-keymap drag-resize-view (kbd "M-Mouse2"))

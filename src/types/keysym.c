@@ -76,6 +76,26 @@ gram_keysym_scm (struct gram_keysym * _keysym)
   return scm_new_smob (gram_keysym_tag, (scm_t_bits) keysym);
 }
 
+#define GRAM_NUM_SYMS 4
+uint32_t gram_keysym_from_name(char* name) {
+  uint32_t sym = xkb_keysym_from_name(name, XKB_KEYSYM_CASE_INSENSITIVE);
+
+  static uint32_t symbols[GRAM_NUM_SYMS][2] = {{'.', XKB_KEY_period    },
+                                               {'$', XKB_KEY_dollar    },
+                                               {',', XKB_KEY_comma     },
+                                               {'#', XKB_KEY_numbersign}};
+
+  if(sym == XKB_KEY_NoSymbol && strlen(name) == 1) {
+    /* check symbols */
+    for(int i = 0; i < GRAM_NUM_SYMS; i++) {
+      if(name[0] == symbols[i][0]) {
+        return symbols[i][1];
+      }
+    }
+  }
+  return sym;
+}
+
 SCM
 gram_keysym_construct (SCM key_desc)
 {
@@ -112,15 +132,15 @@ gram_keysym_construct (SCM key_desc)
       }
     }
     /* TODO: wtf is this? */
-    else if (prev != NULL && strlen (prev) == 1)
-    {
-      scm_misc_error ("kbd", "~A is not a valid keysym",
-                      scm_list_1 (key_desc));
-      return SCM_BOOL_F;
-    }
-    keysym.sym = xkb_keysym_from_name (buf, XKB_KEYSYM_CASE_INSENSITIVE);
+    /* else if (prev != NULL && strlen (prev) == 1) */
+    /* { */
+    /*   scm_misc_error ("kbd", "~A is not a valid keysym", */
+    /*                   scm_list_1 (key_desc)); */
+    /*   return SCM_BOOL_F; */
+    /* } */
+    keysym.sym = gram_keysym_from_name (buf);
     prev = buf;
-    buf = strtok (NULL, "<->");
+    buf = strtok (NULL, "-<>");
   }
 
   /* check for mouse-sym */

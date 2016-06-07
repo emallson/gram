@@ -81,6 +81,17 @@ START_TEST (test_keysym_kbd)
   ck_assert_uint_eq (ks.sym, XKB_KEY_x);
   ck_assert_uint_eq (ks.mods.mods, WLC_BIT_MOD_ALT);
   ck_assert_uint_eq (ks.mods.leds, 0);
+
+  res = scm_call_1 (scm_variable_ref (scm_c_lookup ("kbd")),
+                    scm_from_locale_string ("M-."));
+
+  scm_assert_smob_type (gram_keysym_tag, res);
+  ks = *(struct gram_keysym *) SCM_SMOB_DATA (res);
+
+  ck_assert_uint_eq (ks.keycode, 0);
+  ck_assert_uint_eq (ks.sym, XKB_KEY_period);
+  ck_assert_uint_eq (ks.mods.mods, WLC_BIT_MOD_ALT);
+  ck_assert_uint_eq (ks.mods.leds, 0);
 }
 
 END_TEST
