@@ -10,7 +10,8 @@
   #:use-module (gram view hooks)
   #:use-module ((gram output) #:renamer (symbol-prefix-proc 'output-))
   #:use-module (gram output hooks)
-  #:export (transform-workspace! transform-layout! current-view add-view re-render!))
+  #:export (transform-workspace! transform-layout! current-view add-view re-render!
+                                 containing-layer focus-layer))
 
 (define %default-layout (tall))
 (define %default-floating-layout (simple))
@@ -63,6 +64,22 @@ of `transform-workspace!' for more information."
     (if (view-view? vol)
         vol
         #f)))
+
+(define (containing-layer view)
+  "Returns either 'tiling, 'floating, or #f describing which layer the
+view is contained in on the current workspace."
+  (cond
+   ((contains? (tiling-layout %current-workspace) view) 'tiling)
+   ((contains? (floating-layout %current-workspace) view) 'floating)
+   (else #f)))
+
+(define (focus-layer layer)
+  "Focus the specified layer of the current workspace."
+  (case layer
+    [(tiling floating) (begin
+                         (set-focused-layout! %current-workspace layer)
+                         (view-focus (current-view)))]
+    [else #f]))
 
 (define (should-float? view)
   (let ((types (view-get-types view)))

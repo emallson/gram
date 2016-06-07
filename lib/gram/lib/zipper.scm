@@ -6,7 +6,8 @@
                     zipper zipper-node
                     insert go rotate
                     extract children
-                    top find path replay transform z-> zmap zfilter))
+                    top find path replay transform z-> zmap zfilter
+                    contains?))
 
 (define-immutable-record-type zipper
   (make-zipper node left up right)
@@ -237,3 +238,6 @@ satisfy (apply p? x rest)."
                                     (or (not (leaf? x))
                                         (apply p? x rest))))))
     (replay (top result) track)))
+
+(define (contains? z x)
+  (not (eq? #f (find z (lambda (y) (equal? x y))))))
