@@ -73,6 +73,7 @@ a view."
                                           (if (find z eq)
                                               z
                                               (or (add-view z view) z)))))
+      (view-bring-to-front view)
       (re-render!)
       (set! %origin (pointer-position))
       (set! %origin-geometry (view-get-geometry view))

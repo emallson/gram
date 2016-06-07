@@ -78,7 +78,8 @@ view is contained in on the current workspace."
   (case layer
     [(tiling floating) (begin
                          (set-focused-layout! %current-workspace layer)
-                         (view-focus (current-view)))]
+                         (when (current-view)
+                           (view-focus (current-view))))]
     [else #f]))
 
 (define (should-float? view)
