@@ -73,6 +73,7 @@ a view."
                                           (if (find z eq)
                                               z
                                               (or (add-view z view) z)))))
+      (focus-layer 'floating)
       (view-bring-to-front view)
       (re-render!)
       (set! %origin (pointer-position))
