@@ -19,7 +19,7 @@ gram_output_render_pre_hook_init (void)
   scm_c_export ("output-render-pre-hook", NULL);
 }
 
-void *
+SCM
 gram_output_render_pre_hook_run (void *data)
 {
 

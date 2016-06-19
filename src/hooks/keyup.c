@@ -18,12 +18,12 @@ gram_keyup_hook_init (void)
   scm_c_export ("keyup-hook", NULL);
 }
 
-void *
+SCM
 gram_keyup_hook_run (void *data)
 {
   struct keyup_input* input = (struct keyup_input*) data;
   scm_c_run_hook (gram_keyup_hook,
                   scm_list_2 (gram_keysym_scm (&input->keysym),
                               gram_view_scm(input->view)));
-  return (void *) &gram_swallow;
+  return gram_swallow ? SCM_BOOL_T : SCM_BOOL_F;
 }

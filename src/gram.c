@@ -10,6 +10,12 @@
 #include "types/types.h"
 #include "hooks/hooks.h"
 
+static SCM
+gram_terminate (void) {
+  wlc_terminate();
+  return SCM_UNSPECIFIED;
+}
+
 static bool
 keyboard_key (wlc_handle view, uint32_t time,
               const struct wlc_modifiers *modifiers, uint32_t key,
@@ -35,7 +41,7 @@ keyboard_key (wlc_handle view, uint32_t time,
       .view = view,
       .keysym = keysym
     };
-    bool t = *(bool *) scm_with_guile (gram_keydown_hook_run, &input);
+    bool t = (SCM) gram_call_hook (gram_keydown_hook_run, &input) == SCM_BOOL_T;
     gram_swallow = false;
     return t;
   }
@@ -45,7 +51,7 @@ keyboard_key (wlc_handle view, uint32_t time,
       .view = view,
       .keysym = keysym
     };
-    bool t = *(bool *) scm_with_guile (gram_keyup_hook_run, &input);
+    bool t = (SCM) gram_call_hook (gram_keyup_hook_run, &input) == SCM_BOOL_T;
     gram_swallow = false;
     return t;
   }
@@ -56,7 +62,7 @@ keyboard_key (wlc_handle view, uint32_t time,
 static bool
 view_created (wlc_handle view)
 {
-  scm_with_guile (gram_view_created_hook_run, &view);
+  gram_call_hook(gram_view_created_hook_run, &view);
 
   return true;
 }
@@ -66,7 +72,7 @@ view_destroyed (wlc_handle view)
 {
   /* free the view and then run the hooks */
   gram_view_deactivate (view);
-  scm_with_guile (gram_view_destroyed_hook_run, NULL);
+  gram_call_hook (gram_view_destroyed_hook_run, NULL);
 }
 
 static void
@@ -78,7 +84,7 @@ view_focus (wlc_handle view, bool focus)
   };
 
   wlc_view_set_state (view, WLC_BIT_ACTIVATED, focus);
-  scm_with_guile (gram_view_focus_hook_run, &input);
+  gram_call_hook (gram_view_focus_hook_run, &input);
 }
 
 static void
@@ -90,7 +96,7 @@ view_move_to_output (wlc_handle view, wlc_handle from, wlc_handle to)
     .to_out = to
   };
 
-  scm_with_guile (gram_view_move_to_output_hook_run, &input);
+  gram_call_hook (gram_view_move_to_output_hook_run, &input);
 }
 
 static void
@@ -100,32 +106,32 @@ view_request_geometry (wlc_handle view, const struct wlc_geometry *geo)
     view, geo
   };
 
-  scm_with_guile (gram_view_request_geometry_hook_run, &s);
+  gram_call_hook (gram_view_request_geometry_hook_run, &s);
 }
 
 static void
 view_render_pre (wlc_handle view)
 {
-  scm_with_guile (gram_view_render_pre_hook_run, &view);
+  gram_call_hook (gram_view_render_pre_hook_run, &view);
 }
 
 static void
 view_render_post (wlc_handle view)
 {
-  scm_with_guile (gram_view_render_post_hook_run, &view);
+  gram_call_hook (gram_view_render_post_hook_run, &view);
 }
 
 static bool
 output_created (wlc_handle output)
 {
-  scm_with_guile (gram_output_created_hook_run, &output);
+  gram_call_hook (gram_output_created_hook_run, &output);
   return true;
 }
 
 static void
 output_destroyed (wlc_handle output)
 {
-  scm_with_guile (gram_output_destroyed_hook_run, &output);
+  gram_call_hook (gram_output_destroyed_hook_run, &output);
 }
 
 static void
@@ -135,7 +141,7 @@ output_focus (wlc_handle output, bool focus)
     .handle = output,
     .focus = focus
   };
-  scm_with_guile (gram_output_focus_hook_run, &input);
+  gram_call_hook (gram_output_focus_hook_run, &input);
 }
 
 static void
@@ -147,19 +153,19 @@ output_resolution (wlc_handle output, const struct wlc_size *from,
     .from = from,
     .to = to
   };
-  scm_with_guile (gram_output_resolution_hook_run, &input);
+  gram_call_hook (gram_output_resolution_hook_run, &input);
 }
 
 static void
 output_render_pre (wlc_handle output)
 {
-  scm_with_guile (gram_output_render_pre_hook_run, &output);
+  gram_call_hook (gram_output_render_pre_hook_run, &output);
 }
 
 static void
 output_render_post (wlc_handle output)
 {
-  scm_with_guile (gram_output_render_post_hook_run, &output);
+  gram_call_hook (gram_output_render_post_hook_run, &output);
 }
 
 static bool
@@ -170,7 +176,7 @@ pointer_motion (wlc_handle view, uint32_t time, const struct wlc_point *point)
     .time = time,
     .point = point
   };
-  scm_with_guile (gram_pointer_motion_hook_run, &input);
+  gram_call_hook (gram_pointer_motion_hook_run, &input);
   /* pointer motion always goes to the target view */
   wlc_pointer_set_position (point);
   return false;
@@ -200,7 +206,7 @@ pointer_button (wlc_handle view, uint32_t time, const struct wlc_modifiers *modi
       .view = view,
       .keysym = keysym
     };
-    bool t = *(bool *) scm_with_guile (gram_keydown_hook_run, &input);
+    bool t = (SCM) gram_call_hook (gram_keydown_hook_run, &input) == SCM_BOOL_T;
     gram_swallow = false;
     return t;
   }
@@ -210,7 +216,7 @@ pointer_button (wlc_handle view, uint32_t time, const struct wlc_modifiers *modi
       .view = view,
       .keysym = keysym
     };
-    bool t = *(bool *) scm_with_guile (gram_keyup_hook_run, &input);
+    bool t = (SCM) gram_call_hook (gram_keyup_hook_run, &input) == SCM_BOOL_T;
     gram_swallow = false;
     return t;
   }
@@ -221,13 +227,13 @@ pointer_button (wlc_handle view, uint32_t time, const struct wlc_modifiers *modi
 static void
 compositor_ready ()
 {
-  scm_with_guile (gram_compositor_ready_hook_run, NULL);
+  gram_call_hook (gram_compositor_ready_hook_run, NULL);
 }
 
 static void
 compositor_terminate ()
 {
-  scm_with_guile (gram_compositor_terminate_hook_run, NULL);
+  gram_call_hook (gram_compositor_terminate_hook_run, NULL);
 }
 
 static void *
@@ -251,6 +257,7 @@ init_guile (void *data)
                  scm_from_locale_string (""));
   init_gram_types ();
   init_gram_hooks ();
+  scm_c_define_gsubr("terminate", 0, 0, 0, gram_terminate);
   return SCM_UNSPECIFIED;
 }
 
@@ -258,18 +265,24 @@ static char *
 get_init_file (int argc, char **argv)
 {
   int opt, len;
-  char *init_file = "init.scm";
+  char *home = getenv("HOME"), *init_file = calloc(100, sizeof(char));
+  if(home) {
+    strncpy(init_file, home, 100);
+    strncpy(init_file + strlen(home), "/.gram.d/init.scm", 100 - strlen(home));
+  }
   while ((opt = getopt (argc, argv, "i:")) != -1)
   {
     switch (opt)
     {
     case 'i':
       len = strlen (optarg);
+      free(init_file);
       init_file = calloc (len, sizeof (char));
       strncpy (init_file, optarg, len);
       break;
     }
   }
+  printf("Init file: %s\n", init_file);
   return init_file;
 }
 

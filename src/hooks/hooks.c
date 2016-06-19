@@ -66,3 +66,29 @@ init_gram_hooks (void)
 
   scm_c_define_module ("gram pointer", init_gram_pointer, NULL);
 }
+
+struct gram_hook_wrapper {
+  SCM (*hook)(void*);
+  void* data;
+};
+
+static SCM
+gram_hook_error_handler(void* data, SCM key, SCM args) {
+  return scm_simple_format(SCM_BOOL_T, scm_from_locale_string("~A error thrown with arguments ~A\n"), scm_list_2(key, args));
+}
+
+static void*
+gram_call_hook_body(void* data) {
+  struct gram_hook_wrapper hook = * (struct gram_hook_wrapper*) data;
+  return (void*)scm_internal_catch(SCM_BOOL_T, hook.hook, hook.data,
+                                   gram_hook_error_handler, NULL);
+}
+
+void*
+gram_call_hook(scm_t_catch_body hook, void* data) {
+  struct gram_hook_wrapper wrapper = {
+    .hook = hook,
+    .data = data
+  };
+  return scm_with_guile(gram_call_hook_body, &wrapper);
+}

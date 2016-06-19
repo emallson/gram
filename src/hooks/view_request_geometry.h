@@ -9,4 +9,4 @@ struct view_geo
 };
 
 void gram_view_request_geometry_hook_init (void);
-void *gram_view_request_geometry_hook_run (void *data);
+SCM gram_view_request_geometry_hook_run (void *data);

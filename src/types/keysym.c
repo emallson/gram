@@ -116,7 +116,7 @@ gram_keysym_construct (SCM key_desc)
       switch (prev[0])
       {
       case 'S':
-        keysym.mods.mods |= WLC_BIT_MOD_MOD2;
+        keysym.mods.mods |= WLC_BIT_MOD_LOGO;
         break;
       case 'C':
         keysym.mods.mods |= WLC_BIT_MOD_CTRL;

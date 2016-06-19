@@ -10,4 +10,4 @@ struct move_to_output_input
 };
 
 void gram_view_move_to_output_hook_init (void);
-void *gram_view_move_to_output_hook_run (void *data);
+SCM gram_view_move_to_output_hook_run (void *data);

@@ -3,4 +3,4 @@
 #include <wlc/wlc.h>
 
 void gram_compositor_ready_hook_init (void);
-void *gram_compositor_ready_hook_run (void *data);
+SCM gram_compositor_ready_hook_run (void *data);

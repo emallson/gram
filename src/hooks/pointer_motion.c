@@ -18,7 +18,7 @@ gram_pointer_motion_hook_init (void)
   scm_c_export ("pointer-motion-hook", NULL);
 }
 
-void *
+SCM
 gram_pointer_motion_hook_run (void *data)
 {
   struct pointer_motion_input *input = (struct pointer_motion_input *) data;

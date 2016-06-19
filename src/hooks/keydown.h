@@ -10,4 +10,4 @@ struct keydown_input
 };
 
 void gram_keydown_hook_init (void);
-void *gram_keydown_hook_run (void *data);
+SCM gram_keydown_hook_run (void *data);

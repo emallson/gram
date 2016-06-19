@@ -18,7 +18,7 @@ gram_view_focus_hook_init (void)
   scm_c_export ("view-focus-hook", NULL);
 }
 
-void *
+SCM
 gram_view_focus_hook_run (void *data)
 {
   struct view_focus_input *input = (struct view_focus_input *) data;

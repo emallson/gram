@@ -18,7 +18,7 @@ gram_view_destroyed_hook_init (void)
   scm_c_export ("view-destroyed-hook", NULL);
 }
 
-void *
+SCM
 gram_view_destroyed_hook_run (void *data)
 {
   scm_c_run_hook (gram_view_destroyed_hook, SCM_EOL);

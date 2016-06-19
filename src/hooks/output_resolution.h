@@ -10,4 +10,4 @@ struct resolution_input
 };
 
 void gram_output_resolution_hook_init (void);
-void *gram_output_resolution_hook_run (void *data);
+SCM gram_output_resolution_hook_run (void *data);

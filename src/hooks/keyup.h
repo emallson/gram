@@ -11,4 +11,4 @@ struct keyup_input
 };
 
 void gram_keyup_hook_init (void);
-void *gram_keyup_hook_run (void *data);
+SCM gram_keyup_hook_run (void *data);

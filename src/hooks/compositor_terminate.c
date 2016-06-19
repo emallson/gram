@@ -18,7 +18,7 @@ gram_compositor_terminate_hook_init (void)
   scm_c_export ("compositor-terminate-hook", NULL);
 }
 
-void *
+SCM
 gram_compositor_terminate_hook_run (void *data)
 {
   scm_c_run_hook (gram_compositor_terminate_hook, SCM_EOL);

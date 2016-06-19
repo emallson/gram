@@ -9,4 +9,4 @@ struct view_focus_input
 };
 
 void gram_view_focus_hook_init (void);
-void *gram_view_focus_hook_run (void *data);
+SCM gram_view_focus_hook_run (void *data);

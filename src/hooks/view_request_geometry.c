@@ -19,7 +19,7 @@ gram_view_request_geometry_hook_init (void)
   scm_c_export ("view-request-geometry-hook", NULL);
 }
 
-void *
+SCM
 gram_view_request_geometry_hook_run (void *data)
 {
   struct view_geo *s = (struct view_geo *) data;

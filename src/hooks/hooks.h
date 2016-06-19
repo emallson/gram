@@ -22,3 +22,4 @@
 #include "compositor_terminate.h"
 
 void init_gram_hooks (void);
+void* gram_call_hook (scm_t_catch_body hook, void* data);

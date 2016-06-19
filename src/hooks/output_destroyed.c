@@ -19,7 +19,7 @@ gram_output_destroyed_hook_init (void)
   scm_c_export ("output-destroyed-hook", NULL);
 }
 
-void *
+SCM
 gram_output_destroyed_hook_run (void *data)
 {
   scm_c_run_hook (gram_output_destroyed_hook,

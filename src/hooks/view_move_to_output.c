@@ -20,7 +20,7 @@ gram_view_move_to_output_hook_init (void)
   scm_c_export ("view-move-to-output-hook", NULL);
 }
 
-void *
+SCM
 gram_view_move_to_output_hook_run (void *data)
 {
   struct move_to_output_input *input = (struct move_to_output_input *) data;

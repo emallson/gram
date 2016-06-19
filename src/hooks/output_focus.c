@@ -18,7 +18,7 @@ gram_output_focus_hook_init (void)
   scm_c_export ("output-focus-hook", NULL);
 }
 
-void *
+SCM
 gram_output_focus_hook_run (void *data)
 {
   struct output_focus_input *input = (struct output_focus_input *) data;

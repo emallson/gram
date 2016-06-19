@@ -19,7 +19,7 @@ gram_output_resolution_hook_init (void)
   scm_c_export ("output-resolution-hook", NULL);
 }
 
-void *
+SCM
 gram_output_resolution_hook_run (void *data)
 {
   struct resolution_input *input = (struct resolution_input *) data;
